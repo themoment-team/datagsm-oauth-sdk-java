@@ -13,7 +13,8 @@ import team.themoment.datagsm.sdk.oauth.model.UserInfo;
  * DataGSM OAuth SDK 메인 클라이언트
  */
 public class DataGsmClient implements AutoCloseable {
-    private static final String DEFAULT_BASE_URL = "https://api.datagsm.com";
+    private static final String DEFAULT_AUTHORIZATION_BASE_URL = "https://oauth.data.hellogsm.kr/";
+    private static final String DEFAULT_USERINFO_BASE_URL = "https://oauth-userinfo.data.hellogsm.kr";
 
     private final HttpClient httpClient;
     private final OAuthApi oAuthApi;
@@ -22,10 +23,11 @@ public class DataGsmClient implements AutoCloseable {
     private DataGsmClient(Builder builder) {
         this.httpClient = builder.httpClient != null ? builder.httpClient : new OkHttpClientImpl();
 
-        String baseUrl = builder.baseUrl != null ? builder.baseUrl : DEFAULT_BASE_URL;
+        String authorizationBaseUrl = builder.authorizationBaseUrl != null ? builder.authorizationBaseUrl : DEFAULT_AUTHORIZATION_BASE_URL;
+        String userInfoBaseUrl = builder.userInfoBaseUrl != null ? builder.userInfoBaseUrl : DEFAULT_USERINFO_BASE_URL;
 
-        this.oAuthApi = new OAuthApiImpl(httpClient, builder.clientSecret, baseUrl);
-        this.accountApi = new AccountApiImpl(httpClient, baseUrl);
+        this.oAuthApi = new OAuthApiImpl(httpClient, builder.clientSecret, authorizationBaseUrl);
+        this.accountApi = new AccountApiImpl(httpClient, userInfoBaseUrl);
     }
 
     /**
@@ -95,7 +97,8 @@ public class DataGsmClient implements AutoCloseable {
      */
     public static class Builder {
         private final String clientSecret;
-        private String baseUrl;
+        private String authorizationBaseUrl;
+        private String userInfoBaseUrl;
         private HttpClient httpClient;
 
         private Builder(String clientSecret) {
@@ -106,13 +109,24 @@ public class DataGsmClient implements AutoCloseable {
         }
 
         /**
-         * 베이스 URL 설정 (선택)
+         * 인증 서버 베이스 URL 설정 (선택)
          *
-         * @param baseUrl 베이스 URL
+         * @param authorizationBaseUrl 베이스 URL
          * @return 빌더
          */
-        public Builder baseUrl(String baseUrl) {
-            this.baseUrl = baseUrl;
+        public Builder authorizationBaseUrl(String authorizationBaseUrl) {
+            this.authorizationBaseUrl = authorizationBaseUrl;
+            return this;
+        }
+
+        /**
+         * 유저 정보 서버 베이스 URL 설정 (선택)
+         *
+         * @param userInfoBaseUrl 베이스 URL
+         * @return 빌더
+         */
+        public Builder userInfoBaseUrl(String userInfoBaseUrl) {
+            this.userInfoBaseUrl = userInfoBaseUrl;
             return this;
         }
 
