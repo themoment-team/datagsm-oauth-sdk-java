@@ -13,7 +13,7 @@ import team.themoment.datagsm.sdk.oauth.model.UserInfo;
  * DataGSM OAuth SDK 메인 클라이언트
  */
 public class DataGsmClient implements AutoCloseable {
-    private static final String DEFAULT_AUTHORIZATION_BASE_URL = "https://oauth.data.hellogsm.kr/";
+    private static final String DEFAULT_AUTHORIZATION_BASE_URL = "https://oauth.data.hellogsm.kr";
     private static final String DEFAULT_USERINFO_BASE_URL = "https://oauth-userinfo.data.hellogsm.kr";
 
     private final HttpClient httpClient;
