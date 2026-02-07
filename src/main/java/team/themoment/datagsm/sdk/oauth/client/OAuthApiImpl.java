@@ -51,7 +51,7 @@ public class OAuthApiImpl implements OAuthApi {
         body.put("refreshToken", refreshToken);
 
         String responseBody = httpClient.put(
-                baseUrl + "/v1/oauth/refresh",
+                baseUrl + "/v1/oauth/tokens",
                 headers,
                 JsonUtil.toJson(body)
         );
