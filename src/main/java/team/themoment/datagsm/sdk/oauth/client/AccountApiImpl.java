@@ -27,7 +27,7 @@ public class AccountApiImpl implements AccountApi {
         Map<String, String> headers = createAuthHeaders(accessToken);
 
         String responseBody = httpClient.get(
-                baseUrl + "/v1/account/my",
+                baseUrl + "/userinfo",
                 headers,
                 null
         );
