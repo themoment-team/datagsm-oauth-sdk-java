@@ -59,18 +59,6 @@ public class DataGsmClient implements AutoCloseable {
     }
 
     /**
-     * Authorization 헤더 값 생성
-     *
-     * @deprecated 사용 보류중인 메서드입니다.
-     * @param accessToken Access Token
-     * @return "Bearer {accessToken}" 형식의 헤더 값
-     */
-    @Deprecated
-    public String buildAuthorizationHeader(String accessToken) {
-        return "Bearer " + accessToken;
-    }
-
-    /**
      * 리소스 정리
      */
     @Override
