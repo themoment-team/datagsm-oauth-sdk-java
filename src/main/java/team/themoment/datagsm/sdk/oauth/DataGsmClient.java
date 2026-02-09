@@ -24,7 +24,7 @@ public class DataGsmClient implements AutoCloseable {
 
         String baseUrl = builder.baseUrl != null ? builder.baseUrl : DEFAULT_BASE_URL;
 
-        this.oAuthApi = new OAuthApiImpl(httpClient, builder.clientSecret, baseUrl);
+        this.oAuthApi = new OAuthApiImpl(httpClient, builder.clientId, builder.clientSecret, baseUrl);
         this.accountApi = new AccountApiImpl(httpClient, baseUrl);
     }
 
@@ -83,25 +83,31 @@ public class DataGsmClient implements AutoCloseable {
     /**
      * DataGsmOAuthClient 빌더
      *
+     * @param clientId 클라이언트 ID
      * @param clientSecret 클라이언트 Secret
      * @return 빌더
      */
-    public static Builder builder(String clientSecret) {
-        return new Builder(clientSecret);
+    public static Builder builder(String clientId, String clientSecret) {
+        return new Builder(clientId, clientSecret);
     }
 
     /**
      * 빌더 클래스
      */
     public static class Builder {
+        private final String clientId;
         private final String clientSecret;
         private String baseUrl;
         private HttpClient httpClient;
 
-        private Builder(String clientSecret) {
+        private Builder(String clientId, String clientSecret) {
+            if (clientId == null || clientId.trim().isEmpty()) {
+                throw new IllegalArgumentException("Client id is required");
+            }
             if (clientSecret == null || clientSecret.trim().isEmpty()) {
                 throw new IllegalArgumentException("Client secret is required");
             }
+            this.clientId = clientId;
             this.clientSecret = clientSecret;
         }
 
