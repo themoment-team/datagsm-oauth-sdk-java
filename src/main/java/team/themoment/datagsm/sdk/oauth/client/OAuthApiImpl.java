@@ -11,15 +11,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * OAuth API 구현
+ * OAuth 2.0 API 구현
  */
 public class OAuthApiImpl implements OAuthApi {
     private final HttpClient httpClient;
+    private final String clientId;
     private final String clientSecret;
     private final String baseUrl;
 
-    public OAuthApiImpl(HttpClient httpClient, String clientSecret, String baseUrl) {
+    public OAuthApiImpl(HttpClient httpClient, String clientId, String clientSecret, String baseUrl) {
         this.httpClient = httpClient;
+        this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.baseUrl = baseUrl;
     }
@@ -29,8 +31,10 @@ public class OAuthApiImpl implements OAuthApi {
         Map<String, String> headers = createJsonHeaders();
 
         Map<String, Object> body = new HashMap<>();
+        body.put("grant_type", "authorization_code");
         body.put("code", code);
-        body.put("clientSecret", clientSecret);
+        body.put("client_id", clientId);
+        body.put("client_secret", clientSecret);
 
         String responseBody = httpClient.post(
                 baseUrl + "/v1/oauth/token",
@@ -48,10 +52,13 @@ public class OAuthApiImpl implements OAuthApi {
         Map<String, String> headers = createJsonHeaders();
 
         Map<String, Object> body = new HashMap<>();
-        body.put("refreshToken", refreshToken);
+        body.put("grant_type", "refresh_token");
+        body.put("refresh_token", refreshToken);
+        body.put("client_id", clientId);
+        body.put("client_secret", clientSecret);
 
-        String responseBody = httpClient.put(
-                baseUrl + "/v1/oauth/tokens",
+        String responseBody = httpClient.post(
+                baseUrl + "/v1/oauth/token",
                 headers,
                 JsonUtil.toJson(body)
         );
