@@ -61,18 +61,6 @@ public class DataGsmClient implements AutoCloseable {
     }
 
     /**
-     * Authorization 헤더 값 생성
-     *
-     * @deprecated 사용 보류중인 메서드입니다.
-     * @param accessToken Access Token
-     * @return "Bearer {accessToken}" 형식의 헤더 값
-     */
-    @Deprecated
-    public String buildAuthorizationHeader(String accessToken) {
-        return "Bearer " + accessToken;
-    }
-
-    /**
      * 리소스 정리
      */
     @Override
@@ -85,26 +73,32 @@ public class DataGsmClient implements AutoCloseable {
     /**
      * DataGsmOAuthClient 빌더
      *
+     * @param clientId 클라이언트 ID
      * @param clientSecret 클라이언트 Secret
      * @return 빌더
      */
-    public static Builder builder(String clientSecret) {
-        return new Builder(clientSecret);
+    public static Builder builder(String clientId, String clientSecret) {
+        return new Builder(clientId, clientSecret);
     }
 
     /**
      * 빌더 클래스
      */
     public static class Builder {
+        private final String clientId;
         private final String clientSecret;
         private String authorizationBaseUrl;
         private String userInfoBaseUrl;
         private HttpClient httpClient;
 
-        private Builder(String clientSecret) {
+        private Builder(String clientId, String clientSecret) {
+            if (clientId == null || clientId.trim().isEmpty()) {
+                throw new IllegalArgumentException("Client id is required");
+            }
             if (clientSecret == null || clientSecret.trim().isEmpty()) {
                 throw new IllegalArgumentException("Client secret is required");
             }
+            this.clientId = clientId;
             this.clientSecret = clientSecret;
         }
 
