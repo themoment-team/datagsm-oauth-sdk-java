@@ -26,8 +26,8 @@ public class DataGsmClient implements AutoCloseable {
         String authorizationBaseUrl = builder.authorizationBaseUrl != null ? builder.authorizationBaseUrl : DEFAULT_AUTHORIZATION_BASE_URL;
         String userInfoBaseUrl = builder.userInfoBaseUrl != null ? builder.userInfoBaseUrl : DEFAULT_USERINFO_BASE_URL;
 
-        this.oAuthApi = new OAuthApiImpl(httpClient, builder.clientId, builder.clientSecret, baseUrl);
-        this.accountApi = new AccountApiImpl(httpClient, baseUrl);
+        this.oAuthApi = new OAuthApiImpl(httpClient, builder.clientId, builder.clientSecret, authorizationBaseUrl);
+        this.accountApi = new AccountApiImpl(httpClient, userInfoBaseUrl);
     }
 
     /**
