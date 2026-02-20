@@ -129,6 +129,10 @@ public class OAuthApiImpl implements OAuthApi {
     @Override
     @Deprecated
     public OAuthCodeResponse issueOAuthCode(OAuthCodeRequest request) {
+        if (request.getClientId() == null || request.getClientId().isEmpty()) {
+            request.setClientId(clientId);
+        }
+
         Map<String, String> headers = createJsonHeaders();
 
         String responseBody = httpClient.post(
