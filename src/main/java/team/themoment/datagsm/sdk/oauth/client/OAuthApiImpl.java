@@ -1,10 +1,11 @@
 package team.themoment.datagsm.sdk.oauth.client;
 
-import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import team.themoment.datagsm.sdk.oauth.http.HttpClient;
 import team.themoment.datagsm.sdk.oauth.http.JsonUtil;
 import team.themoment.datagsm.sdk.oauth.model.*;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,14 +18,12 @@ public class OAuthApiImpl implements OAuthApi {
     private final String clientId;
     private final String clientSecret;
     private final String baseUrl;
-    private final Gson gson;
 
     public OAuthApiImpl(HttpClient httpClient, String clientId, String clientSecret, String baseUrl) {
         this.httpClient = httpClient;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.baseUrl = baseUrl;
-        this.gson = new Gson();
     }
 
     @Override
@@ -63,7 +62,9 @@ public class OAuthApiImpl implements OAuthApi {
                 JsonUtil.toJson(body)
         );
 
-        return gson.fromJson(responseBody, TokenResponse.class);
+        Type type = new TypeToken<CommonApiResponse<TokenResponse>>(){}.getType();
+        CommonApiResponse<TokenResponse> apiResponse = JsonUtil.fromJson(responseBody, type);
+        return apiResponse.getData();
     }
 
     @Override
@@ -91,7 +92,9 @@ public class OAuthApiImpl implements OAuthApi {
                 JsonUtil.toJson(body)
         );
 
-        return gson.fromJson(responseBody, TokenResponse.class);
+        Type type = new TypeToken<CommonApiResponse<TokenResponse>>(){}.getType();
+        CommonApiResponse<TokenResponse> apiResponse = JsonUtil.fromJson(responseBody, type);
+        return apiResponse.getData();
     }
 
     @Override
@@ -118,7 +121,9 @@ public class OAuthApiImpl implements OAuthApi {
                 JsonUtil.toJson(body)
         );
 
-        return gson.fromJson(responseBody, TokenResponse.class);
+        Type type = new TypeToken<CommonApiResponse<TokenResponse>>(){}.getType();
+        CommonApiResponse<TokenResponse> apiResponse = JsonUtil.fromJson(responseBody, type);
+        return apiResponse.getData();
     }
 
     @Override
@@ -132,7 +137,9 @@ public class OAuthApiImpl implements OAuthApi {
                 JsonUtil.toJson(request)
         );
 
-        return gson.fromJson(responseBody, OAuthCodeResponse.class);
+        Type type = new TypeToken<CommonApiResponse<OAuthCodeResponse>>(){}.getType();
+        CommonApiResponse<OAuthCodeResponse> apiResponse = JsonUtil.fromJson(responseBody, type);
+        return apiResponse.getData();
     }
 
     /**
