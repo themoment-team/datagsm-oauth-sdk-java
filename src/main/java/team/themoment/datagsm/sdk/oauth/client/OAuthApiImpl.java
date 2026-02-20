@@ -40,7 +40,7 @@ public class OAuthApiImpl implements OAuthApi {
 
     @Override
     public TokenResponse exchangeCodeForToken(String code, String redirectUri, String codeVerifier) {
-        Map<String, String> headers = createFormHeaders();
+        Map<String, String> headers = createRequestHeaders();
 
         Map<String, Object> body = new HashMap<>();
         body.put("grant_type", "authorization_code");
@@ -74,7 +74,7 @@ public class OAuthApiImpl implements OAuthApi {
 
     @Override
     public TokenResponse refreshToken(String refreshToken, String scope) {
-        Map<String, String> headers = createFormHeaders();
+        Map<String, String> headers = createRequestHeaders();
 
         Map<String, Object> body = new HashMap<>();
         body.put("grant_type", "refresh_token");
@@ -104,7 +104,7 @@ public class OAuthApiImpl implements OAuthApi {
 
     @Override
     public TokenResponse getClientCredentialsToken(String scope) {
-        Map<String, String> headers = createFormHeaders();
+        Map<String, String> headers = createRequestHeaders();
 
         Map<String, Object> body = new HashMap<>();
         body.put("grant_type", "client_credentials");
@@ -155,7 +155,7 @@ public class OAuthApiImpl implements OAuthApi {
      * Form Content-Type 헤더 생성
      * OAuth 2.0 표준은 application/x-www-form-urlencoded 또는 application/json 지원
      */
-    private Map<String, String> createFormHeaders() {
+    private Map<String, String> createRequestHeaders() {
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
         return headers;
