@@ -30,6 +30,10 @@ public class OkHttpClientImpl implements HttpClient {
 
     @Override
     public String get(String url, Map<String, String> headers, Map<String, String> queryParams) {
+        HttpUrl parsedUrl = HttpUrl.parse(url);
+        if (parsedUrl == null) {
+            throw new DataGsmException("Invalid URL: " + url);
+        }
         HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
 
         if (queryParams != null) {
