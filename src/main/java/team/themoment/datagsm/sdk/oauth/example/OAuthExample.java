@@ -71,7 +71,7 @@ public class OAuthExample {
         UserInfo userInfo = client.getUserInfo(tokenResponse.getAccessToken());
         System.out.println("3. User Info:");
         System.out.println("   - Email: " + userInfo.getEmail());
-        System.out.println("   - Name: " + userInfo.getName());
+        System.out.println("   - Name: " + (userInfo.isStudent() ? userInfo.getStudent().getName() : "N/A"));
     }
 
     /**
