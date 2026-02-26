@@ -2,7 +2,6 @@ package team.themoment.datagsm.sdk.oauth.http;
 
 import okhttp3.*;
 import team.themoment.datagsm.sdk.oauth.exception.*;
-import team.themoment.datagsm.sdk.oauth.model.CommonApiResponse;
 
 import java.io.IOException;
 import java.util.Map;
@@ -30,7 +29,11 @@ public class OkHttpClientImpl implements HttpClient {
 
     @Override
     public String get(String url, Map<String, String> headers, Map<String, String> queryParams) {
-        HttpUrl.Builder urlBuilder = HttpUrl.parse(url).newBuilder();
+        HttpUrl parsedUrl = HttpUrl.parse(url);
+        if (parsedUrl == null) {
+            throw new DataGsmException("Invalid URL: " + url);
+        }
+        HttpUrl.Builder urlBuilder = parsedUrl.newBuilder();
 
         if (queryParams != null) {
             queryParams.forEach((key, value) -> {
