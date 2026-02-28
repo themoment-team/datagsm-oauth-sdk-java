@@ -6,6 +6,7 @@ import team.themoment.datagsm.sdk.oauth.model.*;
 /**
  * @deprecated {@link DataGsmOAuthClient}를 사용하세요.
  *             이 클래스는 하위 호환성을 위해 유지되며 이후 버전에서 제거될 예정입니다.
+ * @see DataGsmOAuthClient
  */
 @Deprecated(since = "1.0.1", forRemoval = true)
 public class DataGsmClient implements AutoCloseable {
