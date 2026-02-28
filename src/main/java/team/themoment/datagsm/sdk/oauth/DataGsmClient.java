@@ -1,188 +1,120 @@
 package team.themoment.datagsm.sdk.oauth;
 
-import team.themoment.datagsm.sdk.oauth.client.AccountApi;
-import team.themoment.datagsm.sdk.oauth.client.AccountApiImpl;
-import team.themoment.datagsm.sdk.oauth.client.OAuthApi;
-import team.themoment.datagsm.sdk.oauth.client.OAuthApiImpl;
 import team.themoment.datagsm.sdk.oauth.http.HttpClient;
-import team.themoment.datagsm.sdk.oauth.http.OkHttpClientImpl;
 import team.themoment.datagsm.sdk.oauth.model.*;
 
 /**
- * DataGSM OAuth SDK 메인 클라이언트
- * OAuth 2.0 표준 플로우 지원 (RFC 6749)
- * PKCE 확장 지원 (RFC 7636)
+ * @deprecated {@link DataGsmOAuthClient}를 사용하세요.
+ *             이 클래스는 하위 호환성을 위해 유지되며 이후 버전에서 제거될 예정입니다.
  */
+@Deprecated(since = "1.0.1", forRemoval = true)
 public class DataGsmClient implements AutoCloseable {
-    private static final String DEFAULT_AUTHORIZATION_BASE_URL = "https://oauth.data.hellogsm.kr";
-    private static final String DEFAULT_USERINFO_BASE_URL = "https://oauth-userinfo.data.hellogsm.kr";
 
-    private final HttpClient httpClient;
-    private final OAuthApi oAuthApi;
-    private final AccountApi accountApi;
+    private final DataGsmOAuthClient delegate;
 
     private DataGsmClient(Builder builder) {
-        this.httpClient = builder.httpClient != null ? builder.httpClient : new OkHttpClientImpl();
-
-        String authorizationBaseUrl = builder.authorizationBaseUrl != null ? builder.authorizationBaseUrl : DEFAULT_AUTHORIZATION_BASE_URL;
-        String userInfoBaseUrl = builder.userInfoBaseUrl != null ? builder.userInfoBaseUrl : DEFAULT_USERINFO_BASE_URL;
-
-        this.oAuthApi = new OAuthApiImpl(httpClient, builder.clientId, builder.clientSecret, authorizationBaseUrl);
-        this.accountApi = new AccountApiImpl(httpClient, userInfoBaseUrl);
+        DataGsmOAuthClient.Builder delegateBuilder = DataGsmOAuthClient.builder(builder.clientId, builder.clientSecret);
+        if (builder.authorizationBaseUrl != null) {
+            delegateBuilder.authorizationBaseUrl(builder.authorizationBaseUrl);
+        }
+        if (builder.userInfoBaseUrl != null) {
+            delegateBuilder.userInfoBaseUrl(builder.userInfoBaseUrl);
+        }
+        if (builder.httpClient != null) {
+            delegateBuilder.httpClient(builder.httpClient);
+        }
+        this.delegate = delegateBuilder.build();
     }
 
-    // ==================== OAuth 2.0 Authorization Flow ====================
-
     /**
-     * Authorization URL 생성 헬퍼
-     * 사용자를 이 URL로 리다이렉트하여 인증 시작
-     * 
-     * @param redirectUri 인증 후 돌아올 Redirect URI (클라이언트에 등록된 URI여야 함)
-     * @return AuthorizationUrlBuilder (PKCE, state 등 추가 설정 가능)
-     * 
-     * @example
-     * <pre>
-     * AuthorizationUrlBuilder builder = client.createAuthorizationUrl("https://myapp.com/callback");
-     * 
-     * // PKCE 활성화 (권장)
-     * builder.enablePkce();
-     * 
-     * // State 파라미터 설정 (CSRF 방지)
-     * builder.state("random-state-string");
-     * 
-     * // Scope 설정
-     * builder.scope("read write");
-     * 
-     * // URL 생성
-     * String authUrl = builder.build();
-     * 
-     * // PKCE 사용 시 Code Verifier 저장 (토큰 교환 시 필요)
-     * String codeVerifier = builder.getCodeVerifier();
-     * </pre>
+     * @deprecated {@link DataGsmOAuthClient#createAuthorizationUrl(String)}를 사용하세요.
      */
+    @Deprecated(since = "1.0.1", forRemoval = true)
     public AuthorizationUrlBuilder createAuthorizationUrl(String redirectUri) {
-        return oAuthApi.createAuthorizationUrl(redirectUri);
+        return delegate.createAuthorizationUrl(redirectUri);
     }
 
     /**
-     * Authorization Code를 Access Token으로 교환 (Authorization Code Grant)
-     * 
-     * @param code 사용자 인증 후 받은 Authorization Code
-     * @param redirectUri 원본 Authorization 요청에 사용한 Redirect URI
-     * @return 토큰 응답 (access_token, refresh_token, expires_in 등)
+     * @deprecated {@link DataGsmOAuthClient#exchangeCodeForToken(String, String)}를 사용하세요.
      */
+    @Deprecated(since = "1.0.1", forRemoval = true)
     public TokenResponse exchangeCodeForToken(String code, String redirectUri) {
-        return oAuthApi.exchangeCodeForToken(code, redirectUri);
+        return delegate.exchangeCodeForToken(code, redirectUri);
     }
 
     /**
-     * Authorization Code를 Access Token으로 교환 (PKCE 포함)
-     * 
-     * @param code 사용자 인증 후 받은 Authorization Code
-     * @param redirectUri 원본 Authorization 요청에 사용한 Redirect URI
-     * @param codeVerifier Authorization URL 생성 시 생성한 Code Verifier
-     * @return 토큰 응답
+     * @deprecated {@link DataGsmOAuthClient#exchangeCodeForToken(String, String, String)}를 사용하세요.
      */
+    @Deprecated(since = "1.0.1", forRemoval = true)
     public TokenResponse exchangeCodeForToken(String code, String redirectUri, String codeVerifier) {
-        return oAuthApi.exchangeCodeForToken(code, redirectUri, codeVerifier);
+        return delegate.exchangeCodeForToken(code, redirectUri, codeVerifier);
     }
 
     /**
-     * Refresh Token으로 새로운 Access Token 발급 (Refresh Token Grant)
-     *
-     * @param refreshToken 이전에 발급받은 Refresh Token
-     * @return 새로운 토큰 응답 (새로운 access_token과 refresh_token 포함)
+     * @deprecated {@link DataGsmOAuthClient#refreshToken(String)}를 사용하세요.
      */
+    @Deprecated(since = "1.0.1", forRemoval = true)
     public TokenResponse refreshToken(String refreshToken) {
-        return oAuthApi.refreshToken(refreshToken);
+        return delegate.refreshToken(refreshToken);
     }
 
     /**
-     * Refresh Token으로 새로운 Access Token 발급 (scope 지정)
-     *
-     * @param refreshToken 이전에 발급받은 Refresh Token
-     * @param scope 요청할 권한 범위 (원본보다 좁아야 함)
-     * @return 새로운 토큰 응답
+     * @deprecated {@link DataGsmOAuthClient#refreshToken(String, String)}를 사용하세요.
      */
+    @Deprecated(since = "1.0.1", forRemoval = true)
     public TokenResponse refreshToken(String refreshToken, String scope) {
-        return oAuthApi.refreshToken(refreshToken, scope);
+        return delegate.refreshToken(refreshToken, scope);
     }
 
     /**
-     * Client Credentials로 Access Token 발급 (Client Credentials Grant)
-     * 사용자 없이 클라이언트 자격증명만으로 토큰 발급
-     * 
-     * @return 토큰 응답 (refresh_token 없음)
+     * @deprecated {@link DataGsmOAuthClient#getClientCredentialsToken()}를 사용하세요.
      */
+    @Deprecated(since = "1.0.1", forRemoval = true)
     public TokenResponse getClientCredentialsToken() {
-        return oAuthApi.getClientCredentialsToken();
+        return delegate.getClientCredentialsToken();
     }
 
     /**
-     * Client Credentials로 Access Token 발급 (scope 지정)
-     *
-     * @param scope 요청할 권한 범위
-     * @return 토큰 응답
+     * @deprecated {@link DataGsmOAuthClient#getClientCredentialsToken(String)}를 사용하세요.
      */
+    @Deprecated(since = "1.0.1", forRemoval = true)
     public TokenResponse getClientCredentialsToken(String scope) {
-        return oAuthApi.getClientCredentialsToken(scope);
+        return delegate.getClientCredentialsToken(scope);
     }
 
-    // ==================== Legacy API ====================
-
     /**
-     * OAuth Code 발급 (레거시 엔드포인트)
-     * 
-     * @deprecated 표준 OAuth 2.0 플로우를 사용하세요:
-     *             createAuthorizationUrl() → 사용자 인증 → exchangeCodeForToken()
-     * @param request OAuth Code 요청
-     * @return OAuth Code 응답
+     * @deprecated {@link DataGsmOAuthClient#issueOAuthCode(OAuthCodeRequest)}를 사용하세요.
      */
-    @Deprecated
+    @Deprecated(since = "1.0.1", forRemoval = true)
     public OAuthCodeResponse issueOAuthCode(OAuthCodeRequest request) {
-        return oAuthApi.issueOAuthCode(request);
+        return delegate.issueOAuthCode(request);
     }
 
-    // ==================== User Info ====================
-
     /**
-     * Access Token으로 현재 로그인한 사용자 정보 조회
-     *
-     * @param accessToken Access Token
-     * @return 사용자 정보
+     * @deprecated {@link DataGsmOAuthClient#getUserInfo(String)}를 사용하세요.
      */
+    @Deprecated(since = "1.0.1", forRemoval = true)
     public UserInfo getUserInfo(String accessToken) {
-        return accountApi.getUserInfo(accessToken);
+        return delegate.getUserInfo(accessToken);
     }
 
-    // ==================== Resource Management ====================
-
-    /**
-     * 리소스 정리
-     */
     @Override
     public void close() {
-        if (httpClient != null) {
-            httpClient.close();
-        }
+        delegate.close();
     }
 
-    // ==================== Builder ====================
-
     /**
-     * DataGsmClient 빌더
-     *
-     * @param clientId 클라이언트 ID
-     * @param clientSecret 클라이언트 Secret
-     * @return 빌더
+     * @deprecated {@link DataGsmOAuthClient#builder(String, String)}를 사용하세요.
      */
+    @Deprecated(since = "1.0.1", forRemoval = true)
     public static Builder builder(String clientId, String clientSecret) {
         return new Builder(clientId, clientSecret);
     }
 
     /**
-     * 빌더 클래스
+     * @deprecated {@link DataGsmOAuthClient.Builder}를 사용하세요.
      */
+    @Deprecated(since = "1.0.1", forRemoval = true)
     public static class Builder {
         private final String clientId;
         private final String clientSecret;
@@ -202,43 +134,36 @@ public class DataGsmClient implements AutoCloseable {
         }
 
         /**
-         * 인증 서버 베이스 URL 설정 (선택)
-         *
-         * @param authorizationBaseUrl 베이스 URL
-         * @return 빌더
+         * @deprecated {@link DataGsmOAuthClient.Builder#authorizationBaseUrl(String)}를 사용하세요.
          */
+        @Deprecated(since = "1.0.1", forRemoval = true)
         public Builder authorizationBaseUrl(String authorizationBaseUrl) {
             this.authorizationBaseUrl = authorizationBaseUrl;
             return this;
         }
 
         /**
-         * 유저 정보 서버 베이스 URL 설정 (선택)
-         *
-         * @param userInfoBaseUrl 베이스 URL
-         * @return 빌더
+         * @deprecated {@link DataGsmOAuthClient.Builder#userInfoBaseUrl(String)}를 사용하세요.
          */
+        @Deprecated(since = "1.0.1", forRemoval = true)
         public Builder userInfoBaseUrl(String userInfoBaseUrl) {
             this.userInfoBaseUrl = userInfoBaseUrl;
             return this;
         }
 
         /**
-         * HTTP 클라이언트 설정 (선택)
-         *
-         * @param httpClient HTTP 클라이언트
-         * @return 빌더
+         * @deprecated {@link DataGsmOAuthClient.Builder#httpClient(HttpClient)}를 사용하세요.
          */
+        @Deprecated(since = "1.0.1", forRemoval = true)
         public Builder httpClient(HttpClient httpClient) {
             this.httpClient = httpClient;
             return this;
         }
 
         /**
-         * DataGsmClient 생성
-         *
-         * @return DataGsmClient
+         * @deprecated {@link DataGsmOAuthClient.Builder#build()}를 사용하세요.
          */
+        @Deprecated(since = "1.0.1", forRemoval = true)
         public DataGsmClient build() {
             return new DataGsmClient(this);
         }
