@@ -31,7 +31,7 @@ class AccountApiImplTest {
                     "\"grade\":2,\"classNum\":3,\"number\":15,\"studentNumber\":2315," +
                     "\"major\":\"SW_DEVELOPMENT\",\"role\":\"GENERAL_STUDENT\"," +
                     "\"dormitoryFloor\":3,\"dormitoryRoom\":302,\"isLeaveSchool\":false," +
-                    "\"majorClub\":null,\"jobClub\":null,\"autonomousClub\":null}}}";
+                    "\"majorClub\":null,\"autonomousClub\":null}}}";
 
     @BeforeEach
     void setUp() throws IOException {

@@ -18,7 +18,6 @@ public class Student {
     private Integer dormitoryRoom;
     private Boolean isLeaveSchool;
     private ClubInfo majorClub;
-    private ClubInfo jobClub;
     private ClubInfo autonomousClub;
 
     public Student() {}
@@ -144,14 +143,6 @@ public class Student {
         this.majorClub = majorClub;
     }
 
-    public ClubInfo getJobClub() {
-        return jobClub;
-    }
-
-    public void setJobClub(ClubInfo jobClub) {
-        this.jobClub = jobClub;
-    }
-
     public ClubInfo getAutonomousClub() {
         return autonomousClub;
     }
@@ -177,7 +168,6 @@ public class Student {
                 ", dormitoryRoom=" + dormitoryRoom +
                 ", isLeaveSchool=" + isLeaveSchool +
                 ", majorClub=" + majorClub +
-                ", jobClub=" + jobClub +
                 ", autonomousClub=" + autonomousClub +
                 '}';
     }
