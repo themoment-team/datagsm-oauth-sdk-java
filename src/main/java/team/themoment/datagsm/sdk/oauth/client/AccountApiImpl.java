@@ -1,12 +1,9 @@
 package team.themoment.datagsm.sdk.oauth.client;
 
-import com.google.gson.reflect.TypeToken;
 import team.themoment.datagsm.sdk.oauth.http.HttpClient;
 import team.themoment.datagsm.sdk.oauth.http.JsonUtil;
-import team.themoment.datagsm.sdk.oauth.model.CommonApiResponse;
 import team.themoment.datagsm.sdk.oauth.model.UserInfo;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,9 +29,7 @@ public class AccountApiImpl implements AccountApi {
                 null
         );
 
-        Type type = new TypeToken<CommonApiResponse<UserInfo>>(){}.getType();
-        CommonApiResponse<UserInfo> apiResponse = JsonUtil.fromJson(responseBody, type);
-        return apiResponse.getData();
+        return JsonUtil.fromJson(responseBody, UserInfo.class);
     }
 
     private Map<String, String> createAuthHeaders(String accessToken) {

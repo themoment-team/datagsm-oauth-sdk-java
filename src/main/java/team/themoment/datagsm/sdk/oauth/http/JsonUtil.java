@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 import team.themoment.datagsm.sdk.oauth.exception.DataGsmException;
 
-import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -41,22 +40,6 @@ public class JsonUtil {
     public static <T> T fromJson(String json, Class<T> clazz) {
         try {
             return GSON.fromJson(json, clazz);
-        } catch (Exception e) {
-            throw new DataGsmException("Failed to deserialize JSON: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * JSON 문자열을 객체로 변환 (제네릭 타입)
-     *
-     * @param json JSON 문자열
-     * @param type 대상 타입
-     * @param <T> 타입
-     * @return 변환된 객체
-     */
-    public static <T> T fromJson(String json, Type type) {
-        try {
-            return GSON.fromJson(json, type);
         } catch (Exception e) {
             throw new DataGsmException("Failed to deserialize JSON: " + e.getMessage(), e);
         }
