@@ -1,11 +1,9 @@
 package team.themoment.datagsm.sdk.oauth.client;
 
-import com.google.gson.reflect.TypeToken;
 import team.themoment.datagsm.sdk.oauth.http.HttpClient;
 import team.themoment.datagsm.sdk.oauth.http.JsonUtil;
 import team.themoment.datagsm.sdk.oauth.model.*;
 
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,9 +60,7 @@ public class OAuthApiImpl implements OAuthApi {
                 JsonUtil.toJson(body)
         );
 
-        Type type = new TypeToken<CommonApiResponse<TokenResponse>>(){}.getType();
-        CommonApiResponse<TokenResponse> apiResponse = JsonUtil.fromJson(responseBody, type);
-        return apiResponse.getData();
+        return JsonUtil.fromJson(responseBody, TokenResponse.class);
     }
 
     @Override
@@ -92,9 +88,7 @@ public class OAuthApiImpl implements OAuthApi {
                 JsonUtil.toJson(body)
         );
 
-        Type type = new TypeToken<CommonApiResponse<TokenResponse>>(){}.getType();
-        CommonApiResponse<TokenResponse> apiResponse = JsonUtil.fromJson(responseBody, type);
-        return apiResponse.getData();
+        return JsonUtil.fromJson(responseBody, TokenResponse.class);
     }
 
     @Override
@@ -121,9 +115,7 @@ public class OAuthApiImpl implements OAuthApi {
                 JsonUtil.toJson(body)
         );
 
-        Type type = new TypeToken<CommonApiResponse<TokenResponse>>(){}.getType();
-        CommonApiResponse<TokenResponse> apiResponse = JsonUtil.fromJson(responseBody, type);
-        return apiResponse.getData();
+        return JsonUtil.fromJson(responseBody, TokenResponse.class);
     }
 
     @Override
@@ -141,9 +133,7 @@ public class OAuthApiImpl implements OAuthApi {
                 JsonUtil.toJson(request)
         );
 
-        Type type = new TypeToken<CommonApiResponse<OAuthCodeResponse>>(){}.getType();
-        CommonApiResponse<OAuthCodeResponse> apiResponse = JsonUtil.fromJson(responseBody, type);
-        return apiResponse.getData();
+        return JsonUtil.fromJson(responseBody, OAuthCodeResponse.class);
     }
 
     /**

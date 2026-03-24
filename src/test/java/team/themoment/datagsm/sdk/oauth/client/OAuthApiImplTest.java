@@ -25,14 +25,12 @@ class OAuthApiImplTest {
     private static final String REDIRECT_URI = "https://myapp.com/callback";
 
     private static final String TOKEN_RESPONSE_JSON =
-            "{\"status\":\"OK\",\"code\":200,\"message\":\"success\"," +
-                    "\"data\":{\"access_token\":\"test-access-token\",\"token_type\":\"Bearer\"," +
-                    "\"expires_in\":3600,\"refresh_token\":\"test-refresh-token\",\"scope\":\"read\"}}";
+            "{\"access_token\":\"test-access-token\",\"token_type\":\"Bearer\"," +
+                    "\"expires_in\":3600,\"refresh_token\":\"test-refresh-token\",\"scope\":\"read\"}";
 
     private static final String CC_TOKEN_RESPONSE_JSON =
-            "{\"status\":\"OK\",\"code\":200,\"message\":\"success\"," +
-                    "\"data\":{\"access_token\":\"cc-access-token\",\"token_type\":\"Bearer\"," +
-                    "\"expires_in\":3600,\"refresh_token\":null,\"scope\":\"read\"}}";
+            "{\"access_token\":\"cc-access-token\",\"token_type\":\"Bearer\"," +
+                    "\"expires_in\":3600,\"refresh_token\":null,\"scope\":\"read\"}";
 
     @BeforeEach
     void setUp() throws IOException {

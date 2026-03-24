@@ -20,18 +20,16 @@ class AccountApiImplTest {
     private AccountApiImpl accountApi;
 
     private static final String NON_STUDENT_RESPONSE =
-            "{\"status\":\"OK\",\"code\":200,\"message\":\"success\"," +
-                    "\"data\":{\"id\":1,\"email\":\"test@gsm.hs.kr\",\"role\":\"USER\"," +
-                    "\"isStudent\":false,\"student\":null}}";
+            "{\"id\":1,\"email\":\"test@gsm.hs.kr\",\"role\":\"USER\"," +
+                    "\"isStudent\":false,\"student\":null}";
 
     private static final String STUDENT_RESPONSE =
-            "{\"status\":\"OK\",\"code\":200,\"message\":\"success\"," +
-                    "\"data\":{\"id\":2,\"email\":\"student@gsm.hs.kr\",\"role\":\"USER\",\"isStudent\":true," +
+            "{\"id\":2,\"email\":\"student@gsm.hs.kr\",\"role\":\"USER\",\"isStudent\":true," +
                     "\"student\":{\"id\":10,\"name\":\"홍길동\",\"sex\":\"MAN\",\"email\":\"student@gsm.hs.kr\"," +
                     "\"grade\":2,\"classNum\":3,\"number\":15,\"studentNumber\":2315," +
                     "\"major\":\"SW_DEVELOPMENT\",\"role\":\"GENERAL_STUDENT\"," +
                     "\"dormitoryFloor\":3,\"dormitoryRoom\":302,\"isLeaveSchool\":false," +
-                    "\"majorClub\":null,\"autonomousClub\":null}}}";
+                    "\"majorClub\":null,\"autonomousClub\":null}}";
 
     @BeforeEach
     void setUp() throws IOException {
