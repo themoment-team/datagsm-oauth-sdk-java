@@ -19,6 +19,7 @@ public class Student {
     private Boolean isLeaveSchool;
     private ClubInfo majorClub;
     private ClubInfo autonomousClub;
+    private String specialty;
 
     public Student() {}
 
@@ -151,6 +152,14 @@ public class Student {
         this.autonomousClub = autonomousClub;
     }
 
+    public String getSpecialty() {
+        return specialty;
+    }
+
+    public void setSpecialty(String specialty) {
+        this.specialty = specialty;
+    }
+
     @Override
     public String toString() {
         return "StudentInfo{" +
@@ -163,6 +172,7 @@ public class Student {
                 ", number=" + number +
                 ", studentNumber=" + studentNumber +
                 ", major=" + major +
+                ", specialty='" + specialty + '\'' +
                 ", role=" + role +
                 ", dormitoryFloor=" + dormitoryFloor +
                 ", dormitoryRoom=" + dormitoryRoom +
