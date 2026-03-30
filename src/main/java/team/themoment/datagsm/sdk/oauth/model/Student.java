@@ -20,6 +20,8 @@ public class Student {
     private ClubInfo majorClub;
     private ClubInfo autonomousClub;
     private String specialty;
+    private String githubId;
+    private String githubUrl;
 
     public Student() {}
 
@@ -160,6 +162,22 @@ public class Student {
         this.specialty = specialty;
     }
 
+    public String getGithubId() {
+        return githubId;
+    }
+
+    public void setGithubId(String githubId) {
+        this.githubId = githubId;
+    }
+
+    public String getGithubUrl() {
+        return githubUrl;
+    }
+
+    public void setGithubUrl(String githubUrl) {
+        this.githubUrl = githubUrl;
+    }
+
     @Override
     public String toString() {
         return "StudentInfo{" +
@@ -179,6 +197,8 @@ public class Student {
                 ", isLeaveSchool=" + isLeaveSchool +
                 ", majorClub=" + majorClub +
                 ", autonomousClub=" + autonomousClub +
+                ", githubId='" + githubId + '\'' +
+                ", githubUrl='" + githubUrl + '\'' +
                 '}';
     }
 }
