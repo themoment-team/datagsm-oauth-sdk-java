@@ -14,8 +14,8 @@ import team.themoment.datagsm.sdk.oauth.model.*;
  * PKCE 확장 지원 (RFC 7636)
  */
 public class DataGsmOAuthClient implements AutoCloseable {
-    private static final String DEFAULT_AUTHORIZATION_BASE_URL = "https://oauth.data.hellogsm.kr";
-    private static final String DEFAULT_USERINFO_BASE_URL = "https://oauth-userinfo.data.hellogsm.kr";
+    private static final String DEFAULT_AUTHORIZATION_BASE_URL = "https://oauth.authorization.datagsm.kr";
+    private static final String DEFAULT_USERINFO_BASE_URL = "https://oauth.resource.datagsm.kr";
 
     private final HttpClient httpClient;
     private final OAuthApi oAuthApi;
