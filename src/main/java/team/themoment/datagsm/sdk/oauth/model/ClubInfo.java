@@ -7,6 +7,9 @@ public class ClubInfo {
     private Long id;
     private String name;
     private ClubType type;
+    private ClubStatus status;
+    private Integer foundedYear;
+    private Integer abolishedYear;
 
     public ClubInfo() {}
 
@@ -34,12 +37,39 @@ public class ClubInfo {
         this.type = type;
     }
 
+    public ClubStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ClubStatus status) {
+        this.status = status;
+    }
+
+    public Integer getFoundedYear() {
+        return foundedYear;
+    }
+
+    public void setFoundedYear(Integer foundedYear) {
+        this.foundedYear = foundedYear;
+    }
+
+    public Integer getAbolishedYear() {
+        return abolishedYear;
+    }
+
+    public void setAbolishedYear(Integer abolishedYear) {
+        this.abolishedYear = abolishedYear;
+    }
+
     @Override
     public String toString() {
         return "ClubInfo{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", type=" + type +
+                ", status=" + status +
+                ", foundedYear=" + foundedYear +
+                ", abolishedYear=" + abolishedYear +
                 '}';
     }
 }
