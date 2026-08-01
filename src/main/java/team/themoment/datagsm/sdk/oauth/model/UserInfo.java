@@ -9,6 +9,9 @@ public class UserInfo {
     private AccountRole role;
     private Boolean isStudent;
     private Student student;
+    private AccountStatus status;
+    private AccountObjectType objectType;
+    private Teacher teacher;
 
     public UserInfo() {}
 
@@ -36,10 +39,18 @@ public class UserInfo {
         this.role = role;
     }
 
+    /**
+     * @deprecated {@link #getObjectType()}이(가) {@code STUDENT}인지로 대체되었습니다. 하위 호환을 위해 유지됩니다.
+     */
+    @Deprecated
     public Boolean getIsStudent() {
         return isStudent;
     }
 
+    /**
+     * @deprecated {@link #setObjectType(AccountObjectType)}으로 대체되었습니다. 하위 호환을 위해 유지됩니다.
+     */
+    @Deprecated
     public void setIsStudent(Boolean isStudent) {
         this.isStudent = isStudent;
     }
@@ -48,7 +59,9 @@ public class UserInfo {
      * 학생 여부 확인
      *
      * @return 학생인 경우 true
+     * @deprecated {@link #getObjectType()}을(를) 사용하세요.
      */
+    @Deprecated
     public boolean isStudent() {
         return Boolean.TRUE.equals(isStudent);
     }
@@ -61,6 +74,30 @@ public class UserInfo {
         this.student = student;
     }
 
+    public AccountStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(AccountStatus status) {
+        this.status = status;
+    }
+
+    public AccountObjectType getObjectType() {
+        return objectType;
+    }
+
+    public void setObjectType(AccountObjectType objectType) {
+        this.objectType = objectType;
+    }
+
+    public Teacher getTeacher() {
+        return teacher;
+    }
+
+    public void setTeacher(Teacher teacher) {
+        this.teacher = teacher;
+    }
+
     @Override
     public String toString() {
         return "UserInfo{" +
@@ -69,6 +106,9 @@ public class UserInfo {
                 ", role=" + role +
                 ", isStudent=" + isStudent +
                 ", student=" + student +
+                ", status=" + status +
+                ", objectType=" + objectType +
+                ", teacher=" + teacher +
                 '}';
     }
 }
