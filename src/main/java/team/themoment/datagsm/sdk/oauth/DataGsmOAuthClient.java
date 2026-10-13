@@ -51,8 +51,11 @@ public class DataGsmOAuthClient implements AutoCloseable {
      * // State 파라미터 설정 (CSRF 방지)
      * builder.state("random-state-string");
      *
-     * // Scope 설정
-     * builder.scope("read write");
+     * // Scope 설정 ({appId}:{scopeName} 형식, OIDC는 openid 추가)
+     * builder.scope("openid my-app-id:account_read my-app-id:student_read");
+     *
+     * // OIDC nonce (openid 요청 시 권장)
+     * builder.nonce("random-nonce");
      *
      * // URL 생성
      * String authUrl = builder.build();
