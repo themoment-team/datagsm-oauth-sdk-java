@@ -6,6 +6,5 @@ package team.themoment.datagsm.sdk.oauth.model;
 public enum AccountRole {
     ROOT,
     ADMIN,
-    USER,
-    API_KEY_USER
+    USER
 }
