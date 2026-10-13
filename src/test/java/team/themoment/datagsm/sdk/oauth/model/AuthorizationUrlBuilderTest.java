@@ -137,6 +137,36 @@ class AuthorizationUrlBuilderTest {
         }
 
         @Test
+        @DisplayName("대소문자가 다른 method 입력은 서버가 받는 S256, plain 표기로 정규화된다")
+        void normalizesPkceMethod() {
+            String verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
+
+            String s256Url = new AuthorizationUrlBuilder(ENDPOINT, CLIENT_ID)
+                    .redirectUri(REDIRECT_URI)
+                    .enablePkce(verifier, " s256 ")
+                    .build();
+            String plainUrl = new AuthorizationUrlBuilder(ENDPOINT, CLIENT_ID)
+                    .redirectUri(REDIRECT_URI)
+                    .enablePkce(verifier, "PLAIN")
+                    .build();
+
+            assertTrue(s256Url.contains("code_challenge_method=S256"));
+            assertTrue(s256Url.contains("code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"));
+            assertTrue(plainUrl.contains("code_challenge_method=plain"));
+            assertTrue(plainUrl.contains("code_challenge=" + verifier));
+        }
+
+        @Test
+        @DisplayName("method나 codeVerifier가 없으면 IllegalArgumentException이 발생한다")
+        void nullMethodOrVerifierThrows() {
+            AuthorizationUrlBuilder builder = new AuthorizationUrlBuilder(ENDPOINT, CLIENT_ID)
+                    .redirectUri(REDIRECT_URI);
+
+            assertThrows(IllegalArgumentException.class, () -> builder.enablePkce("verifier", null));
+            assertThrows(IllegalArgumentException.class, () -> builder.enablePkce(null, "S256"));
+        }
+
+        @Test
         @DisplayName("지원하지 않는 code_challenge_method는 IllegalArgumentException이 발생한다")
         void invalidMethodThrowsException() {
             AuthorizationUrlBuilder builder = new AuthorizationUrlBuilder(ENDPOINT, CLIENT_ID)

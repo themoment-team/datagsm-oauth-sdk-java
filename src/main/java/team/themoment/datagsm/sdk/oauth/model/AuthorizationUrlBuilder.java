@@ -16,6 +16,9 @@ import team.themoment.datagsm.sdk.oauth.util.ScopeUtils;
  * PKCE (RFC 7636) 지원
  */
 public class AuthorizationUrlBuilder {
+    private static final String PKCE_METHOD_S256 = "S256";
+    private static final String PKCE_METHOD_PLAIN = "plain";
+
     private final String authorizationEndpoint;
     private final String clientId;
     private String redirectUri;
@@ -90,29 +93,43 @@ public class AuthorizationUrlBuilder {
     public AuthorizationUrlBuilder enablePkce() {
         this.codeVerifier = generateCodeVerifier();
         this.codeChallenge = generateCodeChallenge(codeVerifier);
-        this.codeChallengeMethod = "S256";
+        this.codeChallengeMethod = PKCE_METHOD_S256;
         return this;
     }
 
     /**
      * PKCE 활성화 (수동 Code Verifier 지정)
-     * 
+     * <p>
+     * 서버는 code_challenge_method를 대소문자까지 정확히 비교하므로
+     * 입력값의 대소문자와 앞뒤 공백에 관계없이 {@code S256} 또는 {@code plain}으로 정규화해 전송합니다.
+     *
      * @param codeVerifier 43~128자의 랜덤 문자열
-     * @param method "S256" 또는 "plain"
+     * @param method "S256" 또는 "plain" (대소문자 무관)
      */
     public AuthorizationUrlBuilder enablePkce(String codeVerifier, String method) {
-        this.codeVerifier = codeVerifier;
-        this.codeChallengeMethod = method;
-        
-        if ("S256".equalsIgnoreCase(method)) {
-            this.codeChallenge = generateCodeChallenge(codeVerifier);
-        } else if ("plain".equalsIgnoreCase(method)) {
-            this.codeChallenge = codeVerifier;
-        } else {
-            throw new IllegalArgumentException("Invalid code_challenge_method: " + method);
+        if (codeVerifier == null || codeVerifier.isEmpty()) {
+            throw new IllegalArgumentException("codeVerifier is required");
         }
-        
+        String normalizedMethod = normalizePkceMethod(method);
+
+        this.codeVerifier = codeVerifier;
+        this.codeChallengeMethod = normalizedMethod;
+        this.codeChallenge = PKCE_METHOD_S256.equals(normalizedMethod)
+                ? generateCodeChallenge(codeVerifier)
+                : codeVerifier;
+
         return this;
+    }
+
+    private static String normalizePkceMethod(String method) {
+        String trimmed = method != null ? method.trim() : "";
+        if (PKCE_METHOD_S256.equalsIgnoreCase(trimmed)) {
+            return PKCE_METHOD_S256;
+        }
+        if (PKCE_METHOD_PLAIN.equalsIgnoreCase(trimmed)) {
+            return PKCE_METHOD_PLAIN;
+        }
+        throw new IllegalArgumentException("Invalid code_challenge_method: " + method);
     }
 
     /**
