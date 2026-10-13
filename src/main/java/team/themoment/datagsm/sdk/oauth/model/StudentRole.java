@@ -6,5 +6,7 @@ package team.themoment.datagsm.sdk.oauth.model;
 public enum StudentRole {
     STUDENT_COUNCIL,      // 학생회
     DORMITORY_MANAGER,    // 기숙사자치위원회
-    GENERAL_STUDENT       // 일반학생
+    GENERAL_STUDENT,      // 일반학생
+    GRADUATE,             // 졸업생
+    WITHDRAWN             // 자퇴생
 }

@@ -1,7 +1,10 @@
 package team.themoment.datagsm.sdk.oauth.model;
 
 /**
- * 학생 정보
+ * 학생 정보 (서버 StudentResDto)
+ * <p>
+ * {@code majorClub}/{@code autonomousClub}은 토큰에 {@code club_read} scope가 없으면 null입니다.
+ * grade, classNum 등 학적 정보는 졸업생·자퇴생이면 null일 수 있습니다.
  */
 public class Student {
     private Long id;
@@ -16,9 +19,8 @@ public class Student {
     private StudentRole role;
     private Integer dormitoryFloor;
     private Integer dormitoryRoom;
-    private Boolean isLeaveSchool;
-    private ClubInfo majorClub;
-    private ClubInfo autonomousClub;
+    private ClubSummary majorClub;
+    private ClubSummary autonomousClub;
     private String specialty;
     private String githubId;
     private String githubUrl;
@@ -121,36 +123,38 @@ public class Student {
         this.dormitoryRoom = dormitoryRoom;
     }
 
-    public Boolean getIsLeaveSchool() {
-        return isLeaveSchool;
-    }
-
-    public void setIsLeaveSchool(Boolean isLeaveSchool) {
-        this.isLeaveSchool = isLeaveSchool;
+    /**
+     * 자퇴 여부 확인
+     * <p>
+     * 서버 응답에는 isLeaveSchool 필드가 없으며, 자퇴 여부는 {@code role == StudentRole.WITHDRAWN}으로 판단합니다.
+     *
+     * @return 역할이 {@link StudentRole#WITHDRAWN}이면 true
+     * @deprecated {@code getRole() == StudentRole.WITHDRAWN}을 사용하세요.
+     */
+    @Deprecated(since = "2.0.0", forRemoval = true)
+    public boolean isLeaveSchool() {
+        return role == StudentRole.WITHDRAWN;
     }
 
     /**
-     * 자퇴 여부 확인
-     *
-     * @return 자퇴한 경우 true
+     * 전공 동아리. 소속이 없거나 {@code club_read} scope가 없으면 null입니다.
      */
-    public boolean isLeaveSchool() {
-        return Boolean.TRUE.equals(isLeaveSchool);
-    }
-
-    public ClubInfo getMajorClub() {
+    public ClubSummary getMajorClub() {
         return majorClub;
     }
 
-    public void setMajorClub(ClubInfo majorClub) {
+    public void setMajorClub(ClubSummary majorClub) {
         this.majorClub = majorClub;
     }
 
-    public ClubInfo getAutonomousClub() {
+    /**
+     * 자율(창체) 동아리. 소속이 없거나 {@code club_read} scope가 없으면 null입니다.
+     */
+    public ClubSummary getAutonomousClub() {
         return autonomousClub;
     }
 
-    public void setAutonomousClub(ClubInfo autonomousClub) {
+    public void setAutonomousClub(ClubSummary autonomousClub) {
         this.autonomousClub = autonomousClub;
     }
 
@@ -180,7 +184,7 @@ public class Student {
 
     @Override
     public String toString() {
-        return "StudentInfo{" +
+        return "Student{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", sex=" + sex +
@@ -194,7 +198,6 @@ public class Student {
                 ", role=" + role +
                 ", dormitoryFloor=" + dormitoryFloor +
                 ", dormitoryRoom=" + dormitoryRoom +
-                ", isLeaveSchool=" + isLeaveSchool +
                 ", majorClub=" + majorClub +
                 ", autonomousClub=" + autonomousClub +
                 ", githubId='" + githubId + '\'' +

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -136,6 +137,36 @@ class AuthorizationUrlBuilderTest {
         }
 
         @Test
+        @DisplayName("대소문자가 다른 method 입력은 서버가 받는 S256, plain 표기로 정규화된다")
+        void normalizesPkceMethod() {
+            String verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
+
+            String s256Url = new AuthorizationUrlBuilder(ENDPOINT, CLIENT_ID)
+                    .redirectUri(REDIRECT_URI)
+                    .enablePkce(verifier, " s256 ")
+                    .build();
+            String plainUrl = new AuthorizationUrlBuilder(ENDPOINT, CLIENT_ID)
+                    .redirectUri(REDIRECT_URI)
+                    .enablePkce(verifier, "PLAIN")
+                    .build();
+
+            assertTrue(s256Url.contains("code_challenge_method=S256"));
+            assertTrue(s256Url.contains("code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"));
+            assertTrue(plainUrl.contains("code_challenge_method=plain"));
+            assertTrue(plainUrl.contains("code_challenge=" + verifier));
+        }
+
+        @Test
+        @DisplayName("method나 codeVerifier가 없으면 IllegalArgumentException이 발생한다")
+        void nullMethodOrVerifierThrows() {
+            AuthorizationUrlBuilder builder = new AuthorizationUrlBuilder(ENDPOINT, CLIENT_ID)
+                    .redirectUri(REDIRECT_URI);
+
+            assertThrows(IllegalArgumentException.class, () -> builder.enablePkce("verifier", null));
+            assertThrows(IllegalArgumentException.class, () -> builder.enablePkce(null, "S256"));
+        }
+
+        @Test
         @DisplayName("지원하지 않는 code_challenge_method는 IllegalArgumentException이 발생한다")
         void invalidMethodThrowsException() {
             AuthorizationUrlBuilder builder = new AuthorizationUrlBuilder(ENDPOINT, CLIENT_ID)
@@ -157,6 +188,45 @@ class AuthorizationUrlBuilderTest {
                     .enablePkce();
 
             assertNotEquals(builder1.getCodeVerifier(), builder2.getCodeVerifier());
+        }
+    }
+
+    @Nested
+    @DisplayName("OIDC 파라미터")
+    class Oidc {
+
+        @Test
+        @DisplayName("nonce를 지정하면 URL에 포함된다")
+        void nonceIncluded() {
+            String url = new AuthorizationUrlBuilder(ENDPOINT, CLIENT_ID)
+                    .redirectUri(REDIRECT_URI)
+                    .nonce("n-0S6 WzA2Mj")
+                    .build();
+
+            assertTrue(url.contains("&nonce=n-0S6+WzA2Mj"));
+        }
+
+        @Test
+        @DisplayName("nonce를 지정하지 않으면 URL에 없다")
+        void nonceOmitted() {
+            String url = new AuthorizationUrlBuilder(ENDPOINT, CLIENT_ID)
+                    .redirectUri(REDIRECT_URI)
+                    .build();
+
+            assertFalse(url.contains("nonce="));
+        }
+
+        @Test
+        @DisplayName("scope 목록은 공백으로 합쳐서 전송된다")
+        void scopesJoined() {
+            String url = new AuthorizationUrlBuilder(ENDPOINT, CLIENT_ID)
+                    .redirectUri(REDIRECT_URI)
+                    .scopes(Arrays.asList("openid", "app:account_read", "openid"))
+                    .build();
+
+            String decoded = URLDecoder.decode(url, StandardCharsets.UTF_8);
+            assertTrue(decoded.contains("scope=openid app:account_read"));
+            assertFalse(decoded.contains("openid app:account_read openid"));
         }
     }
 }

@@ -11,4 +11,8 @@ public class RateLimitException extends DataGsmException {
     public RateLimitException(String message, Throwable cause) {
         super(message, 429, cause);
     }
+
+    public RateLimitException(String message, String errorCode, String errorDescription, String responseBody) {
+        super(message, 429, errorCode, errorDescription, responseBody);
+    }
 }

@@ -84,14 +84,6 @@ public class DataGsmClient implements AutoCloseable {
     }
 
     /**
-     * @deprecated {@link DataGsmOAuthClient#issueOAuthCode(OAuthCodeRequest)}를 사용하세요.
-     */
-    @Deprecated(since = "1.0.1", forRemoval = true)
-    public OAuthCodeResponse issueOAuthCode(OAuthCodeRequest request) {
-        return delegate.issueOAuthCode(request);
-    }
-
-    /**
      * @deprecated {@link DataGsmOAuthClient#getUserInfo(String)}를 사용하세요.
      */
     @Deprecated(since = "1.0.1", forRemoval = true)

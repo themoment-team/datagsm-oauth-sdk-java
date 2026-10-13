@@ -51,6 +51,22 @@ class DataGsmOAuthClientTest {
         }
 
         @Test
+        @DisplayName("clientId만으로 public client를 생성한다")
+        void buildPublicClient() {
+            assertDoesNotThrow(() -> {
+                try (DataGsmOAuthClient client = DataGsmOAuthClient.builder("public-client").build()) {
+                    assertNotNull(client);
+                }
+            });
+        }
+
+        @Test
+        @DisplayName("public client도 clientId가 비어 있으면 IllegalArgumentException이 발생한다")
+        void publicClientRequiresClientId() {
+            assertThrows(IllegalArgumentException.class, () -> DataGsmOAuthClient.builder(" "));
+        }
+
+        @Test
         @DisplayName("try-with-resources로 안전하게 닫을 수 있다")
         void closeWithTryWithResources() {
             assertDoesNotThrow(() -> {

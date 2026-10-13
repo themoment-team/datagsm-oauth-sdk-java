@@ -2,6 +2,8 @@ package team.themoment.datagsm.sdk.oauth.client;
 
 import team.themoment.datagsm.sdk.oauth.model.*;
 
+import java.util.List;
+
 /**
  * OAuth 2.0 API 인터페이스
  * RFC 6749 (OAuth 2.0), RFC 7636 (PKCE) 표준 준수
@@ -47,10 +49,19 @@ public interface OAuthApi {
      * Refresh Token으로 새로운 Access Token 발급 (scope 지정)
      *
      * @param refreshToken Refresh Token
-     * @param scope 요청할 권한 범위 (선택, 원본보다 좁아야 함)
+     * @param scope 공백으로 구분된 권한 범위 (선택, 원본보다 좁아야 함). 내부적으로 분리해 배열로 전송합니다.
      * @return 새로운 토큰 응답
      */
     TokenResponse refreshToken(String refreshToken, String scope);
+
+    /**
+     * Refresh Token으로 새로운 Access Token 발급 (scope 목록 지정)
+     *
+     * @param refreshToken Refresh Token
+     * @param scopes 요청할 권한 범위 목록 (선택, 원본보다 좁아야 함). null이거나 비어 있으면 원본 scope를 유지합니다.
+     * @return 새로운 토큰 응답
+     */
+    TokenResponse refreshToken(String refreshToken, List<String> scopes);
 
     /**
      * Client Credentials로 Access Token 발급 (Client Credentials Grant)
@@ -63,18 +74,40 @@ public interface OAuthApi {
     /**
      * Client Credentials로 Access Token 발급 (scope 지정)
      *
-     * @param scope 요청할 권한 범위
+     * @param scope 공백으로 구분된 권한 범위. 내부적으로 분리해 배열로 전송합니다.
      * @return 토큰 응답
      */
     TokenResponse getClientCredentialsToken(String scope);
 
     /**
-     * OAuth Code 발급 (레거시 엔드포인트)
-     * 
-     * @deprecated 표준 OAuth 2.0 플로우를 사용하세요 (createAuthorizationUrl → exchangeCodeForToken)
-     * @param request OAuth Code 요청
-     * @return OAuth Code 응답
+     * Client Credentials로 Access Token 발급 (scope 목록 지정)
+     *
+     * @param scopes 요청할 권한 범위 목록. null이거나 비어 있으면 클라이언트에 등록된 전체 scope가 부여됩니다.
+     * @return 토큰 응답
      */
-    @Deprecated
-    OAuthCodeResponse issueOAuthCode(OAuthCodeRequest request);
+    TokenResponse getClientCredentialsToken(List<String> scopes);
+
+    /**
+     * OIDC Discovery 문서 조회 ({@code GET /.well-known/openid-configuration})
+     *
+     * @return Discovery 문서
+     */
+    OidcDiscoveryDocument getDiscoveryDocument();
+
+    /**
+     * id_token 서명 검증용 JWK Set 조회 ({@code GET /v1/oauth/jwks})
+     *
+     * @return JWK Set
+     */
+    JsonWebKeySet getJwkSet();
+
+    /**
+     * IdP 세션 로그아웃 엔드포인트 URL ({@code POST /v1/oauth/logout})
+     * <p>
+     * 서버는 브라우저의 IdP 세션 쿠키만으로 세션을 식별하므로 SP 서버에서 호출해도 효과가 없습니다.
+     * 브라우저에서 {@code fetch(url, { method: "POST", credentials: "include" })}로 호출하세요.
+     *
+     * @return 로그아웃 엔드포인트 URL
+     */
+    String getLogoutEndpoint();
 }

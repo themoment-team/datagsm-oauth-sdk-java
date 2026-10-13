@@ -8,6 +8,8 @@ import team.themoment.datagsm.sdk.oauth.http.HttpClient;
 import team.themoment.datagsm.sdk.oauth.http.OkHttpClientImpl;
 import team.themoment.datagsm.sdk.oauth.model.*;
 
+import java.util.List;
+
 /**
  * DataGSM OAuth SDK 메인 클라이언트
  * OAuth 2.0 표준 플로우 지원 (RFC 6749)
@@ -49,8 +51,11 @@ public class DataGsmOAuthClient implements AutoCloseable {
      * // State 파라미터 설정 (CSRF 방지)
      * builder.state("random-state-string");
      *
-     * // Scope 설정
-     * builder.scope("read write");
+     * // Scope 설정 ({appId}:{scopeName} 형식, OIDC는 openid 추가)
+     * builder.scope("openid my-app-id:account_read my-app-id:student_read");
+     *
+     * // OIDC nonce (openid 요청 시 권장)
+     * builder.nonce("random-nonce");
      *
      * // URL 생성
      * String authUrl = builder.build();
@@ -100,11 +105,26 @@ public class DataGsmOAuthClient implements AutoCloseable {
      * Refresh Token으로 새로운 Access Token 발급 (scope 지정)
      *
      * @param refreshToken 이전에 발급받은 Refresh Token
-     * @param scope        요청할 권한 범위 (원본보다 좁아야 함)
+     * @param scope        공백으로 구분된 권한 범위 (원본보다 좁아야 함). 분리해서 배열로 전송합니다.
      * @return 새로운 토큰 응답
      */
     public TokenResponse refreshToken(String refreshToken, String scope) {
         return oAuthApi.refreshToken(refreshToken, scope);
+    }
+
+    /**
+     * Refresh Token으로 새로운 Access Token 발급 (scope 목록 지정)
+     *
+     * <pre>
+     * client.refreshToken(refreshToken, List.of("my-app-id:account_read"));
+     * </pre>
+     *
+     * @param refreshToken 이전에 발급받은 Refresh Token
+     * @param scopes       요청할 권한 범위 목록 (원본보다 좁아야 함). null이거나 비어 있으면 원본 scope를 유지합니다.
+     * @return 새로운 토큰 응답
+     */
+    public TokenResponse refreshToken(String refreshToken, List<String> scopes) {
+        return oAuthApi.refreshToken(refreshToken, scopes);
     }
 
     /**
@@ -120,26 +140,58 @@ public class DataGsmOAuthClient implements AutoCloseable {
     /**
      * Client Credentials로 Access Token 발급 (scope 지정)
      *
-     * @param scope 요청할 권한 범위
+     * @param scope 공백으로 구분된 권한 범위. 분리해서 배열로 전송합니다.
      * @return 토큰 응답
      */
     public TokenResponse getClientCredentialsToken(String scope) {
         return oAuthApi.getClientCredentialsToken(scope);
     }
 
-    // ==================== Legacy API ====================
+    /**
+     * Client Credentials로 Access Token 발급 (scope 목록 지정)
+     *
+     * @param scopes 요청할 권한 범위 목록. null이거나 비어 있으면 클라이언트에 등록된 전체 scope가 부여됩니다.
+     * @return 토큰 응답
+     */
+    public TokenResponse getClientCredentialsToken(List<String> scopes) {
+        return oAuthApi.getClientCredentialsToken(scopes);
+    }
+
+    // ==================== OpenID Connect ====================
 
     /**
-     * OAuth Code 발급 (레거시 엔드포인트)
+     * OIDC Discovery 문서 조회 ({@code GET /.well-known/openid-configuration})
      *
-     * @deprecated 표준 OAuth 2.0 플로우를 사용하세요:
-     *             createAuthorizationUrl() → 사용자 인증 → exchangeCodeForToken()
-     * @param request OAuth Code 요청
-     * @return OAuth Code 응답
+     * @return issuer, 엔드포인트, 지원 scope/알고리즘 등 메타데이터
      */
-    @Deprecated
-    public OAuthCodeResponse issueOAuthCode(OAuthCodeRequest request) {
-        return oAuthApi.issueOAuthCode(request);
+    public OidcDiscoveryDocument getDiscoveryDocument() {
+        return oAuthApi.getDiscoveryDocument();
+    }
+
+    /**
+     * id_token 서명 검증용 JWK Set 조회 ({@code GET /v1/oauth/jwks})
+     * <p>
+     * SDK는 id_token 서명을 검증하지 않습니다. 이 키로 JWT 라이브러리에서 RS256 서명과
+     * iss, aud(client_id), exp, nonce를 직접 검증하세요.
+     *
+     * @return JWK Set
+     */
+    public JsonWebKeySet getJwkSet() {
+        return oAuthApi.getJwkSet();
+    }
+
+    /**
+     * IdP 세션 로그아웃 엔드포인트 URL ({@code POST /v1/oauth/logout})
+     * <p>
+     * 서버는 요청 본문 없이 브라우저의 IdP 세션 쿠키로만 세션을 식별하고 항상 204를 반환합니다.
+     * SP 서버에서 호출하면 쿠키가 없어 아무 효과가 없으므로, 브라우저에서
+     * {@code fetch(url, { method: "POST", credentials: "include" })}로 호출하세요.
+     * 이미 발급된 access token은 만료될 때까지 유효합니다.
+     *
+     * @return 로그아웃 엔드포인트 URL
+     */
+    public String getLogoutEndpoint() {
+        return oAuthApi.getLogoutEndpoint();
     }
 
     // ==================== User Info ====================
@@ -169,14 +221,35 @@ public class DataGsmOAuthClient implements AutoCloseable {
     // ==================== Builder ====================
 
     /**
-     * DataGsmOAuthClient 빌더
+     * Confidential client 빌더 (client_secret 보유)
      *
      * @param clientId     클라이언트 ID
-     * @param clientSecret 클라이언트 Secret
+     * @param clientSecret 클라이언트 Secret (null 또는 빈 문자열 불가)
      * @return 빌더
      */
     public static Builder builder(String clientId, String clientSecret) {
+        if (clientSecret == null || clientSecret.trim().isEmpty()) {
+            throw new IllegalArgumentException("Client secret is required. Use builder(clientId) for public clients");
+        }
         return new Builder(clientId, clientSecret);
+    }
+
+    /**
+     * Public client 빌더 (client_secret 없음, PKCE 필수)
+     * <p>
+     * 모바일·SPA·데스크톱처럼 secret을 안전하게 보관할 수 없는 환경에서 사용합니다.
+     * 서버 Discovery의 {@code token_endpoint_auth_methods_supported}에 {@code none}이 포함되어 있습니다.
+     * <ul>
+     *     <li>authorization_code 교환은 반드시 {@code code_verifier}와 함께 호출해야 합니다.</li>
+     *     <li>refresh_token 갱신은 client_secret 없이 요청합니다.</li>
+     *     <li>client_credentials grant는 사용할 수 없습니다.</li>
+     * </ul>
+     *
+     * @param clientId 클라이언트 ID
+     * @return 빌더
+     */
+    public static Builder builder(String clientId) {
+        return new Builder(clientId, null);
     }
 
     /**
@@ -192,9 +265,6 @@ public class DataGsmOAuthClient implements AutoCloseable {
         private Builder(String clientId, String clientSecret) {
             if (clientId == null || clientId.trim().isEmpty()) {
                 throw new IllegalArgumentException("Client id is required");
-            }
-            if (clientSecret == null || clientSecret.trim().isEmpty()) {
-                throw new IllegalArgumentException("Client secret is required");
             }
             this.clientId = clientId;
             this.clientSecret = clientSecret;
