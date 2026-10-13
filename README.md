@@ -16,7 +16,7 @@ DataGSM의 OAuth를 추상화된 환경에서 제공합니다.
 <dependency>
     <groupId>com.github.themoment-team</groupId>
     <artifactId>datagsm-oauth-sdk-java</artifactId>
-    <version>1.6.0</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 ### 설치 - Gradle
@@ -27,7 +27,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.themoment-team:datagsm-oauth-sdk-java:1.6.0'
+    implementation 'com.github.themoment-team:datagsm-oauth-sdk-java:2.0.0'
 }
 ```
 
@@ -38,7 +38,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.themoment-team:datagsm-oauth-sdk-java:1.6.0")
+    implementation("com.github.themoment-team:datagsm-oauth-sdk-java:2.0.0")
 }
 ```
 
