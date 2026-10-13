@@ -7,6 +7,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.List;
+
+import team.themoment.datagsm.sdk.oauth.util.ScopeUtils;
 
 /**
  * OAuth 2.0 Authorization URL 빌더
@@ -18,6 +21,7 @@ public class AuthorizationUrlBuilder {
     private String redirectUri;
     private String state;
     private String scope;
+    private String nonce;
     private String codeChallenge;
     private String codeChallengeMethod;
     private String codeVerifier;
@@ -44,10 +48,36 @@ public class AuthorizationUrlBuilder {
     }
 
     /**
-     * Scope 설정 (선택)
+     * Scope 설정 (선택, 공백 구분)
+     * <p>
+     * 형식은 {@code {appId}:{scopeName}}이며 OIDC를 쓰려면 {@code openid}를 함께 넣습니다.
+     * 예: {@code "openid my-app-id:account_read my-app-id:student_read"}.
+     * 생략하면 서버 기본값(account_read, student_read)이 부여됩니다.
      */
     public AuthorizationUrlBuilder scope(String scope) {
         this.scope = scope;
+        return this;
+    }
+
+    /**
+     * Scope 목록 설정 (선택). 공백으로 합쳐서 전송합니다.
+     *
+     * @param scopes scope 목록 (예: {@code List.of("openid", "my-app-id:account_read")})
+     */
+    public AuthorizationUrlBuilder scopes(List<String> scopes) {
+        String joined = ScopeUtils.join(scopes);
+        this.scope = joined.isEmpty() ? null : joined;
+        return this;
+    }
+
+    /**
+     * OIDC nonce 설정 (선택, {@code openid} scope 요청 시 권장)
+     * <p>
+     * 서버는 이 값을 id_token의 {@code nonce} 클레임에 그대로 담습니다.
+     * 세션에 저장해 두었다가 id_token 검증 시 일치하는지 확인하세요.
+     */
+    public AuthorizationUrlBuilder nonce(String nonce) {
+        this.nonce = nonce;
         return this;
     }
 
@@ -104,6 +134,10 @@ public class AuthorizationUrlBuilder {
 
         if (scope != null && !scope.isEmpty()) {
             url.append("&scope=").append(urlEncode(scope));
+        }
+
+        if (nonce != null && !nonce.isEmpty()) {
+            url.append("&nonce=").append(urlEncode(nonce));
         }
 
         if (codeChallenge != null && codeChallengeMethod != null) {

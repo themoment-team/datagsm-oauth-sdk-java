@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -157,6 +158,45 @@ class AuthorizationUrlBuilderTest {
                     .enablePkce();
 
             assertNotEquals(builder1.getCodeVerifier(), builder2.getCodeVerifier());
+        }
+    }
+
+    @Nested
+    @DisplayName("OIDC 파라미터")
+    class Oidc {
+
+        @Test
+        @DisplayName("nonce를 지정하면 URL에 포함된다")
+        void nonceIncluded() {
+            String url = new AuthorizationUrlBuilder(ENDPOINT, CLIENT_ID)
+                    .redirectUri(REDIRECT_URI)
+                    .nonce("n-0S6 WzA2Mj")
+                    .build();
+
+            assertTrue(url.contains("&nonce=n-0S6+WzA2Mj"));
+        }
+
+        @Test
+        @DisplayName("nonce를 지정하지 않으면 URL에 없다")
+        void nonceOmitted() {
+            String url = new AuthorizationUrlBuilder(ENDPOINT, CLIENT_ID)
+                    .redirectUri(REDIRECT_URI)
+                    .build();
+
+            assertFalse(url.contains("nonce="));
+        }
+
+        @Test
+        @DisplayName("scope 목록은 공백으로 합쳐서 전송된다")
+        void scopesJoined() {
+            String url = new AuthorizationUrlBuilder(ENDPOINT, CLIENT_ID)
+                    .redirectUri(REDIRECT_URI)
+                    .scopes(Arrays.asList("openid", "app:account_read", "openid"))
+                    .build();
+
+            String decoded = URLDecoder.decode(url, StandardCharsets.UTF_8);
+            assertTrue(decoded.contains("scope=openid app:account_read"));
+            assertFalse(decoded.contains("openid app:account_read openid"));
         }
     }
 }

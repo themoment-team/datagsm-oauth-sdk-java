@@ -271,6 +271,86 @@ class OAuthApiImplTest {
         }
     }
 
+    @Nested
+    @DisplayName("OIDC")
+    class Oidc {
+
+        private static final String DISCOVERY_JSON =
+                "{\"issuer\":\"https://oauth.authorization.datagsm.kr\"," +
+                        "\"authorization_endpoint\":\"https://oauth.authorization.datagsm.kr/v1/oauth/authorize\"," +
+                        "\"token_endpoint\":\"https://oauth.authorization.datagsm.kr/v1/oauth/token\"," +
+                        "\"jwks_uri\":\"https://oauth.authorization.datagsm.kr/v1/oauth/jwks\"," +
+                        "\"userinfo_endpoint\":\"https://oauth.resource.datagsm.kr/userinfo\"," +
+                        "\"end_session_endpoint\":\"https://oauth.authorization.datagsm.kr/v1/oauth/logout\"," +
+                        "\"response_types_supported\":[\"code\"]," +
+                        "\"grant_types_supported\":[\"authorization_code\",\"refresh_token\",\"client_credentials\"]," +
+                        "\"subject_types_supported\":[\"public\"]," +
+                        "\"id_token_signing_alg_values_supported\":[\"RS256\"]," +
+                        "\"code_challenge_methods_supported\":[\"plain\",\"S256\"]," +
+                        "\"scopes_supported\":[\"openid\",\"app:account_read\"]," +
+                        "\"token_endpoint_auth_methods_supported\":[\"client_secret_post\",\"none\"]," +
+                        "\"claims_supported\":[\"iss\",\"sub\",\"aud\",\"exp\",\"iat\",\"nonce\",\"email\"]}";
+
+        @Test
+        @DisplayName("openid scope 응답의 id_token을 역직렬화한다")
+        void tokenResponseWithIdToken() {
+            enqueueToken("{\"access_token\":\"at\",\"token_type\":\"Bearer\",\"expires_in\":3600," +
+                    "\"refresh_token\":\"rt\",\"scope\":\"openid app:account_read\",\"id_token\":\"header.payload.sig\"}");
+
+            TokenResponse response = oAuthApi.exchangeCodeForToken("code", REDIRECT_URI);
+
+            assertEquals("header.payload.sig", response.getIdToken());
+            assertEquals(Arrays.asList("openid", "app:account_read"), response.getScopes());
+            assertFalse(response.toString().contains("header.payload.sig"));
+        }
+
+        @Test
+        @DisplayName("Discovery 문서를 조회한다")
+        void getDiscoveryDocument() throws InterruptedException {
+            enqueueToken(DISCOVERY_JSON);
+
+            OidcDiscoveryDocument doc = oAuthApi.getDiscoveryDocument();
+
+            assertEquals("https://oauth.authorization.datagsm.kr", doc.getIssuer());
+            assertEquals("https://oauth.resource.datagsm.kr/userinfo", doc.getUserinfoEndpoint());
+            assertEquals("https://oauth.authorization.datagsm.kr/v1/oauth/logout", doc.getEndSessionEndpoint());
+            assertTrue(doc.getTokenEndpointAuthMethodsSupported().contains("none"));
+            assertEquals(Arrays.asList("plain", "S256"), doc.getCodeChallengeMethodsSupported());
+
+            RecordedRequest request = mockWebServer.takeRequest(3, TimeUnit.SECONDS);
+            assertNotNull(request);
+            assertEquals("GET", request.getMethod());
+            assertEquals("/.well-known/openid-configuration", request.getPath());
+        }
+
+        @Test
+        @DisplayName("JWK Set을 조회하고 kid로 키를 찾는다")
+        void getJwkSet() throws InterruptedException {
+            enqueueToken("{\"keys\":[{\"kty\":\"RSA\",\"kid\":\"key-1\",\"n\":\"modulus\",\"e\":\"AQAB\"}]}");
+
+            JsonWebKeySet jwks = oAuthApi.getJwkSet();
+
+            assertEquals(1, jwks.getKeys().size());
+            JsonWebKey key = jwks.findByKid("key-1");
+            assertNotNull(key);
+            assertEquals("RSA", key.getKty());
+            assertEquals("AQAB", key.getE());
+            assertNull(key.getAlg());
+            assertNull(jwks.findByKid("other"));
+
+            RecordedRequest request = mockWebServer.takeRequest(3, TimeUnit.SECONDS);
+            assertNotNull(request);
+            assertEquals("/v1/oauth/jwks", request.getPath());
+        }
+
+        @Test
+        @DisplayName("로그아웃 엔드포인트 URL을 반환한다")
+        void logoutEndpoint() {
+            assertEquals("http://localhost:" + mockWebServer.getPort() + "/v1/oauth/logout",
+                    oAuthApi.getLogoutEndpoint());
+        }
+    }
+
     private void enqueueToken(String json) {
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)

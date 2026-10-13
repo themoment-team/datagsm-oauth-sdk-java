@@ -154,6 +154,43 @@ public class DataGsmOAuthClient implements AutoCloseable {
         return oAuthApi.getClientCredentialsToken(scopes);
     }
 
+    // ==================== OpenID Connect ====================
+
+    /**
+     * OIDC Discovery 문서 조회 ({@code GET /.well-known/openid-configuration})
+     *
+     * @return issuer, 엔드포인트, 지원 scope/알고리즘 등 메타데이터
+     */
+    public OidcDiscoveryDocument getDiscoveryDocument() {
+        return oAuthApi.getDiscoveryDocument();
+    }
+
+    /**
+     * id_token 서명 검증용 JWK Set 조회 ({@code GET /v1/oauth/jwks})
+     * <p>
+     * SDK는 id_token 서명을 검증하지 않습니다. 이 키로 JWT 라이브러리에서 RS256 서명과
+     * iss, aud(client_id), exp, nonce를 직접 검증하세요.
+     *
+     * @return JWK Set
+     */
+    public JsonWebKeySet getJwkSet() {
+        return oAuthApi.getJwkSet();
+    }
+
+    /**
+     * IdP 세션 로그아웃 엔드포인트 URL ({@code POST /v1/oauth/logout})
+     * <p>
+     * 서버는 요청 본문 없이 브라우저의 IdP 세션 쿠키로만 세션을 식별하고 항상 204를 반환합니다.
+     * SP 서버에서 호출하면 쿠키가 없어 아무 효과가 없으므로, 브라우저에서
+     * {@code fetch(url, { method: "POST", credentials: "include" })}로 호출하세요.
+     * 이미 발급된 access token은 만료될 때까지 유효합니다.
+     *
+     * @return 로그아웃 엔드포인트 URL
+     */
+    public String getLogoutEndpoint() {
+        return oAuthApi.getLogoutEndpoint();
+    }
+
     // ==================== User Info ====================
 
     /**

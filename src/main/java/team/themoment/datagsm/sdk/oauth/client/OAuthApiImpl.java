@@ -14,6 +14,12 @@ import java.util.Map;
  * RFC 6749 (OAuth 2.0), RFC 7636 (PKCE) 표준 준수
  */
 public class OAuthApiImpl implements OAuthApi {
+    private static final String AUTHORIZE_PATH = "/v1/oauth/authorize";
+    private static final String TOKEN_PATH = "/v1/oauth/token";
+    private static final String DISCOVERY_PATH = "/.well-known/openid-configuration";
+    private static final String JWKS_PATH = "/v1/oauth/jwks";
+    private static final String LOGOUT_PATH = "/v1/oauth/logout";
+
     private final HttpClient httpClient;
     private final String clientId;
     private final String clientSecret;
@@ -28,7 +34,7 @@ public class OAuthApiImpl implements OAuthApi {
 
     @Override
     public AuthorizationUrlBuilder createAuthorizationUrl(String redirectUri) {
-        String authorizationEndpoint = baseUrl + "/v1/oauth/authorize";
+        String authorizationEndpoint = baseUrl + AUTHORIZE_PATH;
         return new AuthorizationUrlBuilder(authorizationEndpoint, clientId)
                 .redirectUri(redirectUri);
     }
@@ -57,7 +63,7 @@ public class OAuthApiImpl implements OAuthApi {
         }
 
         String responseBody = httpClient.post(
-                baseUrl + "/v1/oauth/token",
+                baseUrl + TOKEN_PATH,
                 headers,
                 JsonUtil.toJson(body)
         );
@@ -88,7 +94,7 @@ public class OAuthApiImpl implements OAuthApi {
         putScopes(body, scopes);
 
         String responseBody = httpClient.post(
-                baseUrl + "/v1/oauth/token",
+                baseUrl + TOKEN_PATH,
                 headers,
                 JsonUtil.toJson(body)
         );
@@ -118,12 +124,29 @@ public class OAuthApiImpl implements OAuthApi {
         putScopes(body, scopes);
 
         String responseBody = httpClient.post(
-                baseUrl + "/v1/oauth/token",
+                baseUrl + TOKEN_PATH,
                 headers,
                 JsonUtil.toJson(body)
         );
 
         return JsonUtil.fromJson(responseBody, TokenResponse.class);
+    }
+
+    @Override
+    public OidcDiscoveryDocument getDiscoveryDocument() {
+        String responseBody = httpClient.get(baseUrl + DISCOVERY_PATH, null, null);
+        return JsonUtil.fromJson(responseBody, OidcDiscoveryDocument.class);
+    }
+
+    @Override
+    public JsonWebKeySet getJwkSet() {
+        String responseBody = httpClient.get(baseUrl + JWKS_PATH, null, null);
+        return JsonUtil.fromJson(responseBody, JsonWebKeySet.class);
+    }
+
+    @Override
+    public String getLogoutEndpoint() {
+        return baseUrl + LOGOUT_PATH;
     }
 
     /**

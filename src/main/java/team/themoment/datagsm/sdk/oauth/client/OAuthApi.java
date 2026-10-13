@@ -86,4 +86,28 @@ public interface OAuthApi {
      * @return 토큰 응답
      */
     TokenResponse getClientCredentialsToken(List<String> scopes);
+
+    /**
+     * OIDC Discovery 문서 조회 ({@code GET /.well-known/openid-configuration})
+     *
+     * @return Discovery 문서
+     */
+    OidcDiscoveryDocument getDiscoveryDocument();
+
+    /**
+     * id_token 서명 검증용 JWK Set 조회 ({@code GET /v1/oauth/jwks})
+     *
+     * @return JWK Set
+     */
+    JsonWebKeySet getJwkSet();
+
+    /**
+     * IdP 세션 로그아웃 엔드포인트 URL ({@code POST /v1/oauth/logout})
+     * <p>
+     * 서버는 브라우저의 IdP 세션 쿠키만으로 세션을 식별하므로 SP 서버에서 호출해도 효과가 없습니다.
+     * 브라우저에서 {@code fetch(url, { method: "POST", credentials: "include" })}로 호출하세요.
+     *
+     * @return 로그아웃 엔드포인트 URL
+     */
+    String getLogoutEndpoint();
 }
