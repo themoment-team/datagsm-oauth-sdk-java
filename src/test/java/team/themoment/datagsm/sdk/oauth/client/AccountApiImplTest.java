@@ -250,6 +250,21 @@ class AccountApiImplTest {
             assertThrows(UnauthorizedException.class,
                     () -> accountApi.getUserInfo("expired-token"));
         }
+
+        @Test
+        @DisplayName("인증 실패 시 CommonApiResponse의 status, message를 예외에 담는다")
+        void commonApiResponseErrorParsed() {
+            mockWebServer.enqueue(new MockResponse()
+                    .setResponseCode(401)
+                    .setHeader("Content-Type", "application/json")
+                    .setBody("{\"status\":\"UNAUTHORIZED\",\"code\":401,\"message\":\"인증에 실패했습니다.\"}"));
+
+            UnauthorizedException ex = assertThrows(UnauthorizedException.class,
+                    () -> accountApi.getUserInfo("bad-token"));
+
+            assertEquals("UNAUTHORIZED", ex.getErrorCode());
+            assertEquals("인증에 실패했습니다.", ex.getErrorDescription());
+        }
     }
 
     private void enqueue(String body) {

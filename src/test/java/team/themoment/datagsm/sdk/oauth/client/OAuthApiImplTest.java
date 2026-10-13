@@ -123,6 +123,20 @@ class OAuthApiImplTest {
         }
 
         @Test
+        @DisplayName("OAuth 에러 응답의 error, error_description을 예외에 담는다")
+        void oauthErrorParsed() {
+            mockWebServer.enqueue(new MockResponse().setResponseCode(400)
+                    .setHeader("Content-Type", "application/json")
+                    .setBody("{\"error\":\"invalid_grant\",\"error_description\":\"PKCE 검증에 실패했습니다.\"}"));
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> oAuthApi.exchangeCodeForToken("code", REDIRECT_URI, "wrong"));
+
+            assertEquals("invalid_grant", ex.getErrorCode());
+            assertEquals("PKCE 검증에 실패했습니다.", ex.getErrorDescription());
+        }
+
+        @Test
         @DisplayName("400 응답 시 BadRequestException이 발생한다")
         void throwsBadRequestOn400() {
             mockWebServer.enqueue(new MockResponse().setResponseCode(400).setBody("Bad Request"));

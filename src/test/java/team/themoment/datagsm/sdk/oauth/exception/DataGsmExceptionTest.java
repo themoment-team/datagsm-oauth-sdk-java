@@ -62,4 +62,19 @@ class DataGsmExceptionTest {
         assertInstanceOf(DataGsmException.class, new RateLimitException("rate limit"));
         assertInstanceOf(DataGsmException.class, new ServerErrorException("server error"));
     }
+
+    @Test
+    @DisplayName("서버 에러 정보를 담아 생성할 수 있고 기본 생성자는 null로 둔다")
+    void errorDetails() {
+        DataGsmException ex = new DataGsmException("msg", 400, "invalid_request", "desc", "{}");
+
+        assertEquals("invalid_request", ex.getErrorCode());
+        assertEquals("desc", ex.getErrorDescription());
+        assertEquals("{}", ex.getResponseBody());
+
+        DataGsmException plain = new DataGsmException("msg", 400);
+        assertNull(plain.getErrorCode());
+        assertNull(plain.getErrorDescription());
+        assertNull(plain.getResponseBody());
+    }
 }
