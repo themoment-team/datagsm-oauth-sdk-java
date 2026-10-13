@@ -351,6 +351,60 @@ class OAuthApiImplTest {
         }
     }
 
+    @Nested
+    @DisplayName("public client (client_secret 없음)")
+    class PublicClient {
+
+        private OAuthApiImpl publicApi;
+
+        @BeforeEach
+        void setUpPublic() {
+            publicApi = new OAuthApiImpl(new OkHttpClientImpl(), CLIENT_ID, null,
+                    "http://localhost:" + mockWebServer.getPort());
+        }
+
+        @Test
+        @DisplayName("PKCE 교환은 client_secret 없이 code_verifier로 요청한다")
+        void exchangeWithPkce() throws InterruptedException {
+            enqueueToken(TOKEN_RESPONSE_JSON);
+
+            publicApi.exchangeCodeForToken("code", REDIRECT_URI, "verifier");
+
+            JsonObject body = takeBody();
+            assertEquals("verifier", body.get("code_verifier").getAsString());
+            assertEquals(CLIENT_ID, body.get("client_id").getAsString());
+            assertFalse(body.has("client_secret"));
+        }
+
+        @Test
+        @DisplayName("code_verifier 없이 교환하면 요청 전에 IllegalStateException이 발생한다")
+        void exchangeWithoutPkceThrows() {
+            assertThrows(IllegalStateException.class,
+                    () -> publicApi.exchangeCodeForToken("code", REDIRECT_URI));
+            assertEquals(0, mockWebServer.getRequestCount());
+        }
+
+        @Test
+        @DisplayName("refresh 요청에서 client_secret을 생략한다")
+        void refreshWithoutSecret() throws InterruptedException {
+            enqueueToken(TOKEN_RESPONSE_JSON);
+
+            publicApi.refreshToken("rt");
+
+            JsonObject body = takeBody();
+            assertEquals("refresh_token", body.get("grant_type").getAsString());
+            assertEquals(CLIENT_ID, body.get("client_id").getAsString());
+            assertFalse(body.has("client_secret"));
+        }
+
+        @Test
+        @DisplayName("client_credentials grant는 요청 전에 IllegalStateException이 발생한다")
+        void clientCredentialsThrows() {
+            assertThrows(IllegalStateException.class, () -> publicApi.getClientCredentialsToken());
+            assertEquals(0, mockWebServer.getRequestCount());
+        }
+    }
+
     private void enqueueToken(String json) {
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(200)

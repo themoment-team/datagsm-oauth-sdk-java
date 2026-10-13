@@ -25,6 +25,9 @@ public class OAuthApiImpl implements OAuthApi {
     private final String clientSecret;
     private final String baseUrl;
 
+    /**
+     * @param clientSecret 클라이언트 Secret. public client(PKCE 전용)라면 null
+     */
     public OAuthApiImpl(HttpClient httpClient, String clientId, String clientSecret, String baseUrl) {
         this.httpClient = httpClient;
         this.clientId = clientId;
@@ -59,7 +62,7 @@ public class OAuthApiImpl implements OAuthApi {
             body.put("code_verifier", codeVerifier);
         } else {
             // PKCE 미사용 시 client_secret 필수
-            body.put("client_secret", clientSecret);
+            body.put("client_secret", requireClientSecret("PKCE 없는 authorization_code 교환"));
         }
 
         String responseBody = httpClient.post(
@@ -89,7 +92,10 @@ public class OAuthApiImpl implements OAuthApi {
         body.put("grant_type", "refresh_token");
         body.put("refresh_token", refreshToken);
         body.put("client_id", clientId);
-        body.put("client_secret", clientSecret);
+        // public client는 secret 없이 갱신한다. 서버는 client_secret이 비어 있으면 client_id만 확인한다.
+        if (isConfidential()) {
+            body.put("client_secret", clientSecret);
+        }
 
         putScopes(body, scopes);
 
@@ -119,7 +125,7 @@ public class OAuthApiImpl implements OAuthApi {
         Map<String, Object> body = new HashMap<>();
         body.put("grant_type", "client_credentials");
         body.put("client_id", clientId);
-        body.put("client_secret", clientSecret);
+        body.put("client_secret", requireClientSecret("client_credentials grant"));
 
         putScopes(body, scopes);
 
@@ -147,6 +153,18 @@ public class OAuthApiImpl implements OAuthApi {
     @Override
     public String getLogoutEndpoint() {
         return baseUrl + LOGOUT_PATH;
+    }
+
+    private boolean isConfidential() {
+        return clientSecret != null && !clientSecret.isEmpty();
+    }
+
+    private String requireClientSecret(String operation) {
+        if (!isConfidential()) {
+            throw new IllegalStateException(operation + "에는 client_secret이 필요합니다. "
+                    + "public client는 PKCE(code_verifier)를 사용하세요.");
+        }
+        return clientSecret;
     }
 
     /**

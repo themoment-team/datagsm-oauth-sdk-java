@@ -218,14 +218,35 @@ public class DataGsmOAuthClient implements AutoCloseable {
     // ==================== Builder ====================
 
     /**
-     * DataGsmOAuthClient 빌더
+     * Confidential client 빌더 (client_secret 보유)
      *
      * @param clientId     클라이언트 ID
-     * @param clientSecret 클라이언트 Secret
+     * @param clientSecret 클라이언트 Secret (null 또는 빈 문자열 불가)
      * @return 빌더
      */
     public static Builder builder(String clientId, String clientSecret) {
+        if (clientSecret == null || clientSecret.trim().isEmpty()) {
+            throw new IllegalArgumentException("Client secret is required. Use builder(clientId) for public clients");
+        }
         return new Builder(clientId, clientSecret);
+    }
+
+    /**
+     * Public client 빌더 (client_secret 없음, PKCE 필수)
+     * <p>
+     * 모바일·SPA·데스크톱처럼 secret을 안전하게 보관할 수 없는 환경에서 사용합니다.
+     * 서버 Discovery의 {@code token_endpoint_auth_methods_supported}에 {@code none}이 포함되어 있습니다.
+     * <ul>
+     *     <li>authorization_code 교환은 반드시 {@code code_verifier}와 함께 호출해야 합니다.</li>
+     *     <li>refresh_token 갱신은 client_secret 없이 요청합니다.</li>
+     *     <li>client_credentials grant는 사용할 수 없습니다.</li>
+     * </ul>
+     *
+     * @param clientId 클라이언트 ID
+     * @return 빌더
+     */
+    public static Builder builder(String clientId) {
+        return new Builder(clientId, null);
     }
 
     /**
@@ -241,9 +262,6 @@ public class DataGsmOAuthClient implements AutoCloseable {
         private Builder(String clientId, String clientSecret) {
             if (clientId == null || clientId.trim().isEmpty()) {
                 throw new IllegalArgumentException("Client id is required");
-            }
-            if (clientSecret == null || clientSecret.trim().isEmpty()) {
-                throw new IllegalArgumentException("Client secret is required");
             }
             this.clientId = clientId;
             this.clientSecret = clientSecret;
