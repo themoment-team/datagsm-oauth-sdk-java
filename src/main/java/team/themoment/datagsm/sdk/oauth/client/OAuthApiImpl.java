@@ -3,8 +3,10 @@ package team.themoment.datagsm.sdk.oauth.client;
 import team.themoment.datagsm.sdk.oauth.http.HttpClient;
 import team.themoment.datagsm.sdk.oauth.http.JsonUtil;
 import team.themoment.datagsm.sdk.oauth.model.*;
+import team.themoment.datagsm.sdk.oauth.util.ScopeUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -65,11 +67,16 @@ public class OAuthApiImpl implements OAuthApi {
 
     @Override
     public TokenResponse refreshToken(String refreshToken) {
-        return refreshToken(refreshToken, null);
+        return refreshToken(refreshToken, (List<String>) null);
     }
 
     @Override
     public TokenResponse refreshToken(String refreshToken, String scope) {
+        return refreshToken(refreshToken, ScopeUtils.split(scope));
+    }
+
+    @Override
+    public TokenResponse refreshToken(String refreshToken, List<String> scopes) {
         Map<String, String> headers = createRequestHeaders();
 
         Map<String, Object> body = new HashMap<>();
@@ -78,9 +85,7 @@ public class OAuthApiImpl implements OAuthApi {
         body.put("client_id", clientId);
         body.put("client_secret", clientSecret);
 
-        if (scope != null && !scope.isEmpty()) {
-            body.put("scope", scope);
-        }
+        putScopes(body, scopes);
 
         String responseBody = httpClient.post(
                 baseUrl + "/v1/oauth/token",
@@ -93,11 +98,16 @@ public class OAuthApiImpl implements OAuthApi {
 
     @Override
     public TokenResponse getClientCredentialsToken() {
-        return getClientCredentialsToken(null);
+        return getClientCredentialsToken((List<String>) null);
     }
 
     @Override
     public TokenResponse getClientCredentialsToken(String scope) {
+        return getClientCredentialsToken(ScopeUtils.split(scope));
+    }
+
+    @Override
+    public TokenResponse getClientCredentialsToken(List<String> scopes) {
         Map<String, String> headers = createRequestHeaders();
 
         Map<String, Object> body = new HashMap<>();
@@ -105,9 +115,7 @@ public class OAuthApiImpl implements OAuthApi {
         body.put("client_id", clientId);
         body.put("client_secret", clientSecret);
 
-        if (scope != null && !scope.isEmpty()) {
-            body.put("scope", scope);
-        }
+        putScopes(body, scopes);
 
         String responseBody = httpClient.post(
                 baseUrl + "/v1/oauth/token",
@@ -134,6 +142,17 @@ public class OAuthApiImpl implements OAuthApi {
         );
 
         return JsonUtil.fromJson(responseBody, OAuthCodeResponse.class);
+    }
+
+    /**
+     * 서버의 Oauth2TokenReqDto.scope는 Set&lt;String&gt;이므로 JSON 배열로 전송합니다.
+     * 비어 있으면 필드를 생략해 서버 기본 동작(원본 scope 유지 또는 클라이언트 전체 scope)을 따릅니다.
+     */
+    private static void putScopes(Map<String, Object> body, List<String> scopes) {
+        List<String> normalized = ScopeUtils.normalize(scopes);
+        if (!normalized.isEmpty()) {
+            body.put("scope", normalized);
+        }
     }
 
     /**

@@ -9,7 +9,13 @@ import team.themoment.datagsm.sdk.oauth.exception.UnauthorizedException;
 import team.themoment.datagsm.sdk.oauth.http.OkHttpClientImpl;
 import team.themoment.datagsm.sdk.oauth.model.*;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -151,19 +157,41 @@ class OAuthApiImplTest {
         }
 
         @Test
-        @DisplayName("scope를 지정하면 요청 본문에 포함된다")
-        void refreshTokenWithScope() throws InterruptedException {
-            mockWebServer.enqueue(new MockResponse()
-                    .setResponseCode(200)
-                    .setHeader("Content-Type", "application/json")
-                    .setBody(TOKEN_RESPONSE_JSON));
+        @DisplayName("공백 구분 scope 문자열은 분리되어 JSON 배열로 전송된다")
+        void refreshTokenWithScopeString() throws InterruptedException {
+            enqueueToken(TOKEN_RESPONSE_JSON);
 
-            oAuthApi.refreshToken("my-refresh-token", "read");
+            oAuthApi.refreshToken("my-refresh-token", "  app:account_read   app:student_read ");
 
-            RecordedRequest request = mockWebServer.takeRequest(3, TimeUnit.SECONDS);
-            assertNotNull(request, "요청이 서버에 도달하지 않았습니다");
-            String body = request.getBody().readUtf8();
-            assertTrue(body.contains("\"scope\":\"read\""));
+            JsonArray scope = takeBody().getAsJsonArray("scope");
+            assertEquals(2, scope.size());
+            assertEquals("app:account_read", scope.get(0).getAsString());
+            assertEquals("app:student_read", scope.get(1).getAsString());
+        }
+
+        @Test
+        @DisplayName("scope 목록은 중복과 빈 값을 제거해 JSON 배열로 전송된다")
+        void refreshTokenWithScopeList() throws InterruptedException {
+            enqueueToken(TOKEN_RESPONSE_JSON);
+
+            oAuthApi.refreshToken("my-refresh-token", Arrays.asList("app:account_read", "", null, "app:account_read"));
+
+            JsonArray scope = takeBody().getAsJsonArray("scope");
+            assertEquals(1, scope.size());
+            assertEquals("app:account_read", scope.get(0).getAsString());
+        }
+
+        @Test
+        @DisplayName("빈 scope 목록이나 공백 문자열이면 scope 필드를 생략한다")
+        void refreshTokenWithEmptyScopes() throws InterruptedException {
+            enqueueToken(TOKEN_RESPONSE_JSON);
+            enqueueToken(TOKEN_RESPONSE_JSON);
+
+            oAuthApi.refreshToken("my-refresh-token", Collections.emptyList());
+            assertFalse(takeBody().has("scope"));
+
+            oAuthApi.refreshToken("my-refresh-token", "   ");
+            assertFalse(takeBody().has("scope"));
         }
 
         @Test
@@ -209,19 +237,50 @@ class OAuthApiImplTest {
         }
 
         @Test
-        @DisplayName("scope를 지정하면 요청 본문에 포함된다")
+        @DisplayName("scope 문자열을 지정하면 JSON 배열로 전송된다")
         void getTokenWithScope() throws InterruptedException {
-            mockWebServer.enqueue(new MockResponse()
-                    .setResponseCode(200)
-                    .setHeader("Content-Type", "application/json")
-                    .setBody(CC_TOKEN_RESPONSE_JSON));
+            enqueueToken(CC_TOKEN_RESPONSE_JSON);
 
-            oAuthApi.getClientCredentialsToken("api.read");
+            oAuthApi.getClientCredentialsToken("app:account_read");
 
-            RecordedRequest request = mockWebServer.takeRequest(3, TimeUnit.SECONDS);
-            assertNotNull(request, "요청이 서버에 도달하지 않았습니다");
-            String body = request.getBody().readUtf8();
-            assertTrue(body.contains("\"scope\":\"api.read\""));
+            JsonArray scope = takeBody().getAsJsonArray("scope");
+            assertEquals(1, scope.size());
+            assertEquals("app:account_read", scope.get(0).getAsString());
         }
+
+        @Test
+        @DisplayName("scope 목록을 지정하면 JSON 배열로 전송된다")
+        void getTokenWithScopeList() throws InterruptedException {
+            enqueueToken(CC_TOKEN_RESPONSE_JSON);
+
+            oAuthApi.getClientCredentialsToken(Arrays.asList("app:account_read", "app:club_read"));
+
+            JsonArray scope = takeBody().getAsJsonArray("scope");
+            assertEquals(2, scope.size());
+            assertEquals("app:club_read", scope.get(1).getAsString());
+        }
+
+        @Test
+        @DisplayName("scope를 지정하지 않으면 scope 필드를 생략한다")
+        void getTokenWithoutScope() throws InterruptedException {
+            enqueueToken(CC_TOKEN_RESPONSE_JSON);
+
+            oAuthApi.getClientCredentialsToken();
+
+            assertFalse(takeBody().has("scope"));
+        }
+    }
+
+    private void enqueueToken(String json) {
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(json));
+    }
+
+    private JsonObject takeBody() throws InterruptedException {
+        RecordedRequest request = mockWebServer.takeRequest(3, TimeUnit.SECONDS);
+        assertNotNull(request, "요청이 서버에 도달하지 않았습니다");
+        return JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject();
     }
 }

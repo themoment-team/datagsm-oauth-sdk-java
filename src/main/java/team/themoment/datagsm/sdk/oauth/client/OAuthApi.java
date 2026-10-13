@@ -2,6 +2,8 @@ package team.themoment.datagsm.sdk.oauth.client;
 
 import team.themoment.datagsm.sdk.oauth.model.*;
 
+import java.util.List;
+
 /**
  * OAuth 2.0 API 인터페이스
  * RFC 6749 (OAuth 2.0), RFC 7636 (PKCE) 표준 준수
@@ -47,10 +49,19 @@ public interface OAuthApi {
      * Refresh Token으로 새로운 Access Token 발급 (scope 지정)
      *
      * @param refreshToken Refresh Token
-     * @param scope 요청할 권한 범위 (선택, 원본보다 좁아야 함)
+     * @param scope 공백으로 구분된 권한 범위 (선택, 원본보다 좁아야 함). 내부적으로 분리해 배열로 전송합니다.
      * @return 새로운 토큰 응답
      */
     TokenResponse refreshToken(String refreshToken, String scope);
+
+    /**
+     * Refresh Token으로 새로운 Access Token 발급 (scope 목록 지정)
+     *
+     * @param refreshToken Refresh Token
+     * @param scopes 요청할 권한 범위 목록 (선택, 원본보다 좁아야 함). null이거나 비어 있으면 원본 scope를 유지합니다.
+     * @return 새로운 토큰 응답
+     */
+    TokenResponse refreshToken(String refreshToken, List<String> scopes);
 
     /**
      * Client Credentials로 Access Token 발급 (Client Credentials Grant)
@@ -63,10 +74,18 @@ public interface OAuthApi {
     /**
      * Client Credentials로 Access Token 발급 (scope 지정)
      *
-     * @param scope 요청할 권한 범위
+     * @param scope 공백으로 구분된 권한 범위. 내부적으로 분리해 배열로 전송합니다.
      * @return 토큰 응답
      */
     TokenResponse getClientCredentialsToken(String scope);
+
+    /**
+     * Client Credentials로 Access Token 발급 (scope 목록 지정)
+     *
+     * @param scopes 요청할 권한 범위 목록. null이거나 비어 있으면 클라이언트에 등록된 전체 scope가 부여됩니다.
+     * @return 토큰 응답
+     */
+    TokenResponse getClientCredentialsToken(List<String> scopes);
 
     /**
      * OAuth Code 발급 (레거시 엔드포인트)

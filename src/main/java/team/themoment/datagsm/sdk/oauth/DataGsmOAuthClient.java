@@ -8,6 +8,8 @@ import team.themoment.datagsm.sdk.oauth.http.HttpClient;
 import team.themoment.datagsm.sdk.oauth.http.OkHttpClientImpl;
 import team.themoment.datagsm.sdk.oauth.model.*;
 
+import java.util.List;
+
 /**
  * DataGSM OAuth SDK 메인 클라이언트
  * OAuth 2.0 표준 플로우 지원 (RFC 6749)
@@ -100,11 +102,26 @@ public class DataGsmOAuthClient implements AutoCloseable {
      * Refresh Token으로 새로운 Access Token 발급 (scope 지정)
      *
      * @param refreshToken 이전에 발급받은 Refresh Token
-     * @param scope        요청할 권한 범위 (원본보다 좁아야 함)
+     * @param scope        공백으로 구분된 권한 범위 (원본보다 좁아야 함). 분리해서 배열로 전송합니다.
      * @return 새로운 토큰 응답
      */
     public TokenResponse refreshToken(String refreshToken, String scope) {
         return oAuthApi.refreshToken(refreshToken, scope);
+    }
+
+    /**
+     * Refresh Token으로 새로운 Access Token 발급 (scope 목록 지정)
+     *
+     * <pre>
+     * client.refreshToken(refreshToken, List.of("my-app-id:account_read"));
+     * </pre>
+     *
+     * @param refreshToken 이전에 발급받은 Refresh Token
+     * @param scopes       요청할 권한 범위 목록 (원본보다 좁아야 함). null이거나 비어 있으면 원본 scope를 유지합니다.
+     * @return 새로운 토큰 응답
+     */
+    public TokenResponse refreshToken(String refreshToken, List<String> scopes) {
+        return oAuthApi.refreshToken(refreshToken, scopes);
     }
 
     /**
@@ -120,11 +137,21 @@ public class DataGsmOAuthClient implements AutoCloseable {
     /**
      * Client Credentials로 Access Token 발급 (scope 지정)
      *
-     * @param scope 요청할 권한 범위
+     * @param scope 공백으로 구분된 권한 범위. 분리해서 배열로 전송합니다.
      * @return 토큰 응답
      */
     public TokenResponse getClientCredentialsToken(String scope) {
         return oAuthApi.getClientCredentialsToken(scope);
+    }
+
+    /**
+     * Client Credentials로 Access Token 발급 (scope 목록 지정)
+     *
+     * @param scopes 요청할 권한 범위 목록. null이거나 비어 있으면 클라이언트에 등록된 전체 scope가 부여됩니다.
+     * @return 토큰 응답
+     */
+    public TokenResponse getClientCredentialsToken(List<String> scopes) {
+        return oAuthApi.getClientCredentialsToken(scopes);
     }
 
     // ==================== Legacy API ====================
