@@ -86,14 +86,4 @@ public interface OAuthApi {
      * @return 토큰 응답
      */
     TokenResponse getClientCredentialsToken(List<String> scopes);
-
-    /**
-     * OAuth Code 발급 (레거시 엔드포인트)
-     * 
-     * @deprecated 표준 OAuth 2.0 플로우를 사용하세요 (createAuthorizationUrl → exchangeCodeForToken)
-     * @param request OAuth Code 요청
-     * @return OAuth Code 응답
-     */
-    @Deprecated
-    OAuthCodeResponse issueOAuthCode(OAuthCodeRequest request);
 }

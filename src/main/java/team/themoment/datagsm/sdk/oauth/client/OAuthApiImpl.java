@@ -126,24 +126,6 @@ public class OAuthApiImpl implements OAuthApi {
         return JsonUtil.fromJson(responseBody, TokenResponse.class);
     }
 
-    @Override
-    @Deprecated
-    public OAuthCodeResponse issueOAuthCode(OAuthCodeRequest request) {
-        if (request.getClientId() == null || request.getClientId().isEmpty()) {
-            request.setClientId(clientId);
-        }
-
-        Map<String, String> headers = createJsonHeaders();
-
-        String responseBody = httpClient.post(
-                baseUrl + "/v1/oauth/code",
-                headers,
-                JsonUtil.toJson(request)
-        );
-
-        return JsonUtil.fromJson(responseBody, OAuthCodeResponse.class);
-    }
-
     /**
      * 서버의 Oauth2TokenReqDto.scope는 Set&lt;String&gt;이므로 JSON 배열로 전송합니다.
      * 비어 있으면 필드를 생략해 서버 기본 동작(원본 scope 유지 또는 클라이언트 전체 scope)을 따릅니다.
@@ -153,15 +135,6 @@ public class OAuthApiImpl implements OAuthApi {
         if (!normalized.isEmpty()) {
             body.put("scope", normalized);
         }
-    }
-
-    /**
-     * JSON Content-Type 헤더 생성
-     */
-    private Map<String, String> createJsonHeaders() {
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Content-Type", "application/json");
-        return headers;
     }
 
     /**

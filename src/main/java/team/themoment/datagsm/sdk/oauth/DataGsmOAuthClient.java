@@ -154,21 +154,6 @@ public class DataGsmOAuthClient implements AutoCloseable {
         return oAuthApi.getClientCredentialsToken(scopes);
     }
 
-    // ==================== Legacy API ====================
-
-    /**
-     * OAuth Code 발급 (레거시 엔드포인트)
-     *
-     * @deprecated 표준 OAuth 2.0 플로우를 사용하세요:
-     *             createAuthorizationUrl() → 사용자 인증 → exchangeCodeForToken()
-     * @param request OAuth Code 요청
-     * @return OAuth Code 응답
-     */
-    @Deprecated
-    public OAuthCodeResponse issueOAuthCode(OAuthCodeRequest request) {
-        return oAuthApi.issueOAuthCode(request);
-    }
-
     // ==================== User Info ====================
 
     /**
