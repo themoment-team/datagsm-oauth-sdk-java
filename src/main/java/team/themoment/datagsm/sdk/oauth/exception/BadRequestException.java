@@ -11,4 +11,8 @@ public class BadRequestException extends DataGsmException {
     public BadRequestException(String message, Throwable cause) {
         super(message, 400, cause);
     }
+
+    public BadRequestException(String message, String errorCode, String errorDescription, String responseBody) {
+        super(message, 400, errorCode, errorDescription, responseBody);
+    }
 }

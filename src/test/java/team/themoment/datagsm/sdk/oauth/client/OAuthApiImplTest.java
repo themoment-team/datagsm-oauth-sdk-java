@@ -9,7 +9,13 @@ import team.themoment.datagsm.sdk.oauth.exception.UnauthorizedException;
 import team.themoment.datagsm.sdk.oauth.http.OkHttpClientImpl;
 import team.themoment.datagsm.sdk.oauth.model.*;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -117,6 +123,20 @@ class OAuthApiImplTest {
         }
 
         @Test
+        @DisplayName("OAuth 에러 응답의 error, error_description을 예외에 담는다")
+        void oauthErrorParsed() {
+            mockWebServer.enqueue(new MockResponse().setResponseCode(400)
+                    .setHeader("Content-Type", "application/json")
+                    .setBody("{\"error\":\"invalid_grant\",\"error_description\":\"PKCE 검증에 실패했습니다.\"}"));
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> oAuthApi.exchangeCodeForToken("code", REDIRECT_URI, "wrong"));
+
+            assertEquals("invalid_grant", ex.getErrorCode());
+            assertEquals("PKCE 검증에 실패했습니다.", ex.getErrorDescription());
+        }
+
+        @Test
         @DisplayName("400 응답 시 BadRequestException이 발생한다")
         void throwsBadRequestOn400() {
             mockWebServer.enqueue(new MockResponse().setResponseCode(400).setBody("Bad Request"));
@@ -151,19 +171,41 @@ class OAuthApiImplTest {
         }
 
         @Test
-        @DisplayName("scope를 지정하면 요청 본문에 포함된다")
-        void refreshTokenWithScope() throws InterruptedException {
-            mockWebServer.enqueue(new MockResponse()
-                    .setResponseCode(200)
-                    .setHeader("Content-Type", "application/json")
-                    .setBody(TOKEN_RESPONSE_JSON));
+        @DisplayName("공백 구분 scope 문자열은 분리되어 JSON 배열로 전송된다")
+        void refreshTokenWithScopeString() throws InterruptedException {
+            enqueueToken(TOKEN_RESPONSE_JSON);
 
-            oAuthApi.refreshToken("my-refresh-token", "read");
+            oAuthApi.refreshToken("my-refresh-token", "  app:account_read   app:student_read ");
 
-            RecordedRequest request = mockWebServer.takeRequest(3, TimeUnit.SECONDS);
-            assertNotNull(request, "요청이 서버에 도달하지 않았습니다");
-            String body = request.getBody().readUtf8();
-            assertTrue(body.contains("\"scope\":\"read\""));
+            JsonArray scope = takeBody().getAsJsonArray("scope");
+            assertEquals(2, scope.size());
+            assertEquals("app:account_read", scope.get(0).getAsString());
+            assertEquals("app:student_read", scope.get(1).getAsString());
+        }
+
+        @Test
+        @DisplayName("scope 목록은 중복과 빈 값을 제거해 JSON 배열로 전송된다")
+        void refreshTokenWithScopeList() throws InterruptedException {
+            enqueueToken(TOKEN_RESPONSE_JSON);
+
+            oAuthApi.refreshToken("my-refresh-token", Arrays.asList("app:account_read", "", null, "app:account_read"));
+
+            JsonArray scope = takeBody().getAsJsonArray("scope");
+            assertEquals(1, scope.size());
+            assertEquals("app:account_read", scope.get(0).getAsString());
+        }
+
+        @Test
+        @DisplayName("빈 scope 목록이나 공백 문자열이면 scope 필드를 생략한다")
+        void refreshTokenWithEmptyScopes() throws InterruptedException {
+            enqueueToken(TOKEN_RESPONSE_JSON);
+            enqueueToken(TOKEN_RESPONSE_JSON);
+
+            oAuthApi.refreshToken("my-refresh-token", Collections.emptyList());
+            assertFalse(takeBody().has("scope"));
+
+            oAuthApi.refreshToken("my-refresh-token", "   ");
+            assertFalse(takeBody().has("scope"));
         }
 
         @Test
@@ -209,19 +251,184 @@ class OAuthApiImplTest {
         }
 
         @Test
-        @DisplayName("scope를 지정하면 요청 본문에 포함된다")
+        @DisplayName("scope 문자열을 지정하면 JSON 배열로 전송된다")
         void getTokenWithScope() throws InterruptedException {
-            mockWebServer.enqueue(new MockResponse()
-                    .setResponseCode(200)
-                    .setHeader("Content-Type", "application/json")
-                    .setBody(CC_TOKEN_RESPONSE_JSON));
+            enqueueToken(CC_TOKEN_RESPONSE_JSON);
 
-            oAuthApi.getClientCredentialsToken("api.read");
+            oAuthApi.getClientCredentialsToken("app:account_read");
+
+            JsonArray scope = takeBody().getAsJsonArray("scope");
+            assertEquals(1, scope.size());
+            assertEquals("app:account_read", scope.get(0).getAsString());
+        }
+
+        @Test
+        @DisplayName("scope 목록을 지정하면 JSON 배열로 전송된다")
+        void getTokenWithScopeList() throws InterruptedException {
+            enqueueToken(CC_TOKEN_RESPONSE_JSON);
+
+            oAuthApi.getClientCredentialsToken(Arrays.asList("app:account_read", "app:club_read"));
+
+            JsonArray scope = takeBody().getAsJsonArray("scope");
+            assertEquals(2, scope.size());
+            assertEquals("app:club_read", scope.get(1).getAsString());
+        }
+
+        @Test
+        @DisplayName("scope를 지정하지 않으면 scope 필드를 생략한다")
+        void getTokenWithoutScope() throws InterruptedException {
+            enqueueToken(CC_TOKEN_RESPONSE_JSON);
+
+            oAuthApi.getClientCredentialsToken();
+
+            assertFalse(takeBody().has("scope"));
+        }
+    }
+
+    @Nested
+    @DisplayName("OIDC")
+    class Oidc {
+
+        private static final String DISCOVERY_JSON =
+                "{\"issuer\":\"https://oauth.authorization.datagsm.kr\"," +
+                        "\"authorization_endpoint\":\"https://oauth.authorization.datagsm.kr/v1/oauth/authorize\"," +
+                        "\"token_endpoint\":\"https://oauth.authorization.datagsm.kr/v1/oauth/token\"," +
+                        "\"jwks_uri\":\"https://oauth.authorization.datagsm.kr/v1/oauth/jwks\"," +
+                        "\"userinfo_endpoint\":\"https://oauth.resource.datagsm.kr/userinfo\"," +
+                        "\"end_session_endpoint\":\"https://oauth.authorization.datagsm.kr/v1/oauth/logout\"," +
+                        "\"response_types_supported\":[\"code\"]," +
+                        "\"grant_types_supported\":[\"authorization_code\",\"refresh_token\",\"client_credentials\"]," +
+                        "\"subject_types_supported\":[\"public\"]," +
+                        "\"id_token_signing_alg_values_supported\":[\"RS256\"]," +
+                        "\"code_challenge_methods_supported\":[\"plain\",\"S256\"]," +
+                        "\"scopes_supported\":[\"openid\",\"app:account_read\"]," +
+                        "\"token_endpoint_auth_methods_supported\":[\"client_secret_post\",\"none\"]," +
+                        "\"claims_supported\":[\"iss\",\"sub\",\"aud\",\"exp\",\"iat\",\"nonce\",\"email\"]}";
+
+        @Test
+        @DisplayName("openid scope 응답의 id_token을 역직렬화한다")
+        void tokenResponseWithIdToken() {
+            enqueueToken("{\"access_token\":\"at\",\"token_type\":\"Bearer\",\"expires_in\":3600," +
+                    "\"refresh_token\":\"rt\",\"scope\":\"openid app:account_read\",\"id_token\":\"header.payload.sig\"}");
+
+            TokenResponse response = oAuthApi.exchangeCodeForToken("code", REDIRECT_URI);
+
+            assertEquals("header.payload.sig", response.getIdToken());
+            assertEquals(Arrays.asList("openid", "app:account_read"), response.getScopes());
+            assertFalse(response.toString().contains("header.payload.sig"));
+        }
+
+        @Test
+        @DisplayName("Discovery 문서를 조회한다")
+        void getDiscoveryDocument() throws InterruptedException {
+            enqueueToken(DISCOVERY_JSON);
+
+            OidcDiscoveryDocument doc = oAuthApi.getDiscoveryDocument();
+
+            assertEquals("https://oauth.authorization.datagsm.kr", doc.getIssuer());
+            assertEquals("https://oauth.resource.datagsm.kr/userinfo", doc.getUserinfoEndpoint());
+            assertEquals("https://oauth.authorization.datagsm.kr/v1/oauth/logout", doc.getEndSessionEndpoint());
+            assertTrue(doc.getTokenEndpointAuthMethodsSupported().contains("none"));
+            assertEquals(Arrays.asList("plain", "S256"), doc.getCodeChallengeMethodsSupported());
 
             RecordedRequest request = mockWebServer.takeRequest(3, TimeUnit.SECONDS);
-            assertNotNull(request, "요청이 서버에 도달하지 않았습니다");
-            String body = request.getBody().readUtf8();
-            assertTrue(body.contains("\"scope\":\"api.read\""));
+            assertNotNull(request);
+            assertEquals("GET", request.getMethod());
+            assertEquals("/.well-known/openid-configuration", request.getPath());
         }
+
+        @Test
+        @DisplayName("JWK Set을 조회하고 kid로 키를 찾는다")
+        void getJwkSet() throws InterruptedException {
+            enqueueToken("{\"keys\":[{\"kty\":\"RSA\",\"kid\":\"key-1\",\"n\":\"modulus\",\"e\":\"AQAB\"}]}");
+
+            JsonWebKeySet jwks = oAuthApi.getJwkSet();
+
+            assertEquals(1, jwks.getKeys().size());
+            JsonWebKey key = jwks.findByKid("key-1");
+            assertNotNull(key);
+            assertEquals("RSA", key.getKty());
+            assertEquals("AQAB", key.getE());
+            assertNull(key.getAlg());
+            assertNull(jwks.findByKid("other"));
+
+            RecordedRequest request = mockWebServer.takeRequest(3, TimeUnit.SECONDS);
+            assertNotNull(request);
+            assertEquals("/v1/oauth/jwks", request.getPath());
+        }
+
+        @Test
+        @DisplayName("로그아웃 엔드포인트 URL을 반환한다")
+        void logoutEndpoint() {
+            assertEquals("http://localhost:" + mockWebServer.getPort() + "/v1/oauth/logout",
+                    oAuthApi.getLogoutEndpoint());
+        }
+    }
+
+    @Nested
+    @DisplayName("public client (client_secret 없음)")
+    class PublicClient {
+
+        private OAuthApiImpl publicApi;
+
+        @BeforeEach
+        void setUpPublic() {
+            publicApi = new OAuthApiImpl(new OkHttpClientImpl(), CLIENT_ID, null,
+                    "http://localhost:" + mockWebServer.getPort());
+        }
+
+        @Test
+        @DisplayName("PKCE 교환은 client_secret 없이 code_verifier로 요청한다")
+        void exchangeWithPkce() throws InterruptedException {
+            enqueueToken(TOKEN_RESPONSE_JSON);
+
+            publicApi.exchangeCodeForToken("code", REDIRECT_URI, "verifier");
+
+            JsonObject body = takeBody();
+            assertEquals("verifier", body.get("code_verifier").getAsString());
+            assertEquals(CLIENT_ID, body.get("client_id").getAsString());
+            assertFalse(body.has("client_secret"));
+        }
+
+        @Test
+        @DisplayName("code_verifier 없이 교환하면 요청 전에 IllegalStateException이 발생한다")
+        void exchangeWithoutPkceThrows() {
+            assertThrows(IllegalStateException.class,
+                    () -> publicApi.exchangeCodeForToken("code", REDIRECT_URI));
+            assertEquals(0, mockWebServer.getRequestCount());
+        }
+
+        @Test
+        @DisplayName("refresh 요청에서 client_secret을 생략한다")
+        void refreshWithoutSecret() throws InterruptedException {
+            enqueueToken(TOKEN_RESPONSE_JSON);
+
+            publicApi.refreshToken("rt");
+
+            JsonObject body = takeBody();
+            assertEquals("refresh_token", body.get("grant_type").getAsString());
+            assertEquals(CLIENT_ID, body.get("client_id").getAsString());
+            assertFalse(body.has("client_secret"));
+        }
+
+        @Test
+        @DisplayName("client_credentials grant는 요청 전에 IllegalStateException이 발생한다")
+        void clientCredentialsThrows() {
+            assertThrows(IllegalStateException.class, () -> publicApi.getClientCredentialsToken());
+            assertEquals(0, mockWebServer.getRequestCount());
+        }
+    }
+
+    private void enqueueToken(String json) {
+        mockWebServer.enqueue(new MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody(json));
+    }
+
+    private JsonObject takeBody() throws InterruptedException {
+        RecordedRequest request = mockWebServer.takeRequest(3, TimeUnit.SECONDS);
+        assertNotNull(request, "요청이 서버에 도달하지 않았습니다");
+        return JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject();
     }
 }

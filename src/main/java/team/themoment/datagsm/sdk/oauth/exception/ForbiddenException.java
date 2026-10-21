@@ -11,4 +11,8 @@ public class ForbiddenException extends DataGsmException {
     public ForbiddenException(String message, Throwable cause) {
         super(message, 403, cause);
     }
+
+    public ForbiddenException(String message, String errorCode, String errorDescription, String responseBody) {
+        super(message, 403, errorCode, errorDescription, responseBody);
+    }
 }

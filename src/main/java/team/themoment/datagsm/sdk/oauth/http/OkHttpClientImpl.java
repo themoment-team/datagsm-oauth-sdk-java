@@ -1,7 +1,7 @@
 package team.themoment.datagsm.sdk.oauth.http;
 
 import okhttp3.*;
-import team.themoment.datagsm.sdk.oauth.exception.*;
+import team.themoment.datagsm.sdk.oauth.exception.DataGsmException;
 
 import java.io.IOException;
 import java.util.Map;
@@ -89,38 +89,12 @@ public class OkHttpClientImpl implements HttpClient {
             String responseBody = response.body() != null ? response.body().string() : "";
 
             if (!response.isSuccessful()) {
-                handleErrorResponse(response.code(), responseBody);
+                throw ErrorResponseParser.toException(response.code(), responseBody);
             }
 
             return responseBody;
         } catch (IOException e) {
             throw new DataGsmException("HTTP request failed: " + e.getMessage(), e);
-        }
-    }
-
-    private void handleErrorResponse(int statusCode, String responseBody) {
-        String message = responseBody != null && !responseBody.isEmpty()
-                ? responseBody
-                : "HTTP " + statusCode + " error";
-
-        switch (statusCode) {
-            case 400:
-                throw new BadRequestException(message);
-            case 401:
-                throw new UnauthorizedException(message);
-            case 403:
-                throw new ForbiddenException(message);
-            case 404:
-                throw new NotFoundException(message);
-            case 429:
-                throw new RateLimitException(message);
-            case 500:
-            case 502:
-            case 503:
-            case 504:
-                throw new ServerErrorException(message);
-            default:
-                throw new DataGsmException(message, statusCode);
         }
     }
 

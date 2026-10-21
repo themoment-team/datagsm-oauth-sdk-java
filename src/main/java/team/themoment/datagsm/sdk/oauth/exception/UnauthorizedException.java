@@ -11,4 +11,8 @@ public class UnauthorizedException extends DataGsmException {
     public UnauthorizedException(String message, Throwable cause) {
         super(message, 401, cause);
     }
+
+    public UnauthorizedException(String message, String errorCode, String errorDescription, String responseBody) {
+        super(message, 401, errorCode, errorDescription, responseBody);
+    }
 }
