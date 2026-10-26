@@ -1,44 +1,40 @@
 ## DataGSM Oauth SDK for Java
-[![JitPack](https://jitpack.io/v/themoment-team/datagsm-oauth-sdk-java.svg)](https://jitpack.io/#themoment-team/datagsm-oauth-sdk-java)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Java](https://img.shields.io/badge/Java-13%2B-blue.svg)](https://www.java.com/)
 
 DataGSM의 OAuth를 추상화된 환경에서 제공합니다.
-### 설치 - Maven
-```xml
-<repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-</repositories>
+### 설치
+Maven Central에 배포됩니다. 별도 저장소나 인증 토큰 없이 `mavenCentral()`만 있으면 됩니다.
 
+#### Maven
+```xml
 <dependency>
-    <groupId>com.github.themoment-team</groupId>
+    <groupId>io.github.themoment-team</groupId>
     <artifactId>datagsm-oauth-sdk-java</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
 </dependency>
 ```
-### 설치 - Gradle
+
+#### Gradle
 ```groovy
 // Groovy DSL
 repositories {
-    maven { url 'https://jitpack.io' }
+    mavenCentral()
 }
 
 dependencies {
-    implementation 'com.github.themoment-team:datagsm-oauth-sdk-java:2.0.0'
+    implementation 'io.github.themoment-team:datagsm-oauth-sdk-java:2.0.1'
 }
 ```
 
 ```kotlin
 // Kotlin DSL
 repositories {
-    maven { url("https://jitpack.io") }
+    mavenCentral()
 }
 
 dependencies {
-    implementation("com.github.themoment-team:datagsm-oauth-sdk-java:2.0.0")
+    implementation("io.github.themoment-team:datagsm-oauth-sdk-java:2.0.1")
 }
 ```
 
@@ -84,6 +80,12 @@ scope는 `{appId}:{scopeName}` 형식입니다. `{appId}`는 DataGSM 애플리�
 - `getDiscoveryDocument()`: `/.well-known/openid-configuration` 조회
 - `getJwkSet()`: `/v1/oauth/jwks` 조회. SDK는 id_token 서명을 검증하지 않으므로, 이 공개키로 JWT 라이브러리에서 RS256 서명과 `iss`, `aud`, `exp`, `nonce`를 직접 검증하세요.
 - `getLogoutEndpoint()`: IdP 세션 로그아웃 URL(`POST /v1/oauth/logout`). 브라우저 쿠키로만 동작하므로 브라우저에서 `fetch(url, { method: "POST", credentials: "include" })`로 호출합니다.
+
+### 2.0.0 → 2.0.1 마이그레이션
+배포 위치가 JitPack에서 Maven Central로 바뀌면서 groupId가 바뀌었습니다. 코드의 패키지(`import`)는 그대로입니다.
+
+- 의존성을 `com.github.themoment-team:datagsm-oauth-sdk-java`에서 `io.github.themoment-team:datagsm-oauth-sdk-java`로 바꾸세요.
+- JitPack 저장소(`https://jitpack.io`) 설정은 다른 의존성에서 쓰지 않는다면 지워도 됩니다.
 
 ### 1.x → 2.0 마이그레이션
 | 1.x | 2.0 |
