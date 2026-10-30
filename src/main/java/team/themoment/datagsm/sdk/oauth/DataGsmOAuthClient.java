@@ -187,6 +187,9 @@ public class DataGsmOAuthClient implements AutoCloseable {
      * SP 서버에서 호출하면 쿠키가 없어 아무 효과가 없으므로, 브라우저에서
      * {@code fetch(url, { method: "POST", credentials: "include" })}로 호출하세요.
      * 이미 발급된 access token은 만료될 때까지 유효합니다.
+     * <p>
+     * 서버가 이 엔드포인트를 Discovery에 광고하지 않으므로, 반환값은 서버에서 읽은 값이 아니라
+     * SDK가 인증 서버 주소에 고정 경로 {@code /v1/oauth/logout}을 붙여 만든 URL입니다.
      *
      * @return 로그아웃 엔드포인트 URL
      */

@@ -25,7 +25,7 @@ class AccountApiImplTest {
                     "\"status\":\"ACTIVE\",\"objectType\":null,\"teacher\":null}";
 
     private static final String STUDENT_RESPONSE =
-            "{\"id\":2,\"email\":\"student@gsm.hs.kr\",\"role\":\"USER\",\"isStudent\":true," +
+            "{\"sub\":\"student@gsm.hs.kr\",\"id\":2,\"email\":\"student@gsm.hs.kr\",\"role\":\"USER\",\"isStudent\":true," +
                     "\"student\":{\"id\":10,\"name\":\"홍길동\",\"sex\":\"MAN\",\"email\":\"student@gsm.hs.kr\"," +
                     "\"grade\":2,\"classNum\":3,\"number\":15,\"studentNumber\":2315," +
                     "\"major\":\"SW_DEVELOPMENT\",\"role\":\"GENERAL_STUDENT\"," +
@@ -58,7 +58,7 @@ class AccountApiImplTest {
                     "\"projects\":[{\"id\":7,\"name\":\"p\",\"status\":\"PAUSED\",\"club\":null}]}";
 
     private static final String TEACHER_RESPONSE =
-            "{\"id\":3,\"email\":\"teacher@gsm.hs.kr\",\"role\":\"USER\"," +
+            "{\"sub\":\"teacher@gsm.hs.kr\",\"id\":3,\"email\":\"teacher@gsm.hs.kr\",\"role\":\"USER\"," +
                     "\"isStudent\":false,\"student\":null," +
                     "\"status\":\"ACTIVE\",\"objectType\":\"TEACHER\"," +
                     "\"teacher\":{\"id\":20,\"name\":\"김선생\",\"email\":\"teacher@gsm.hs.kr\"," +
@@ -122,6 +122,7 @@ class AccountApiImplTest {
 
             UserInfo userInfo = accountApi.getUserInfo("valid-access-token");
 
+            assertEquals("student@gsm.hs.kr", userInfo.getSub());
             assertTrue(userInfo.isStudent());
             assertNotNull(userInfo.getStudent());
             assertEquals("홍길동", userInfo.getStudent().getName());
@@ -145,6 +146,7 @@ class AccountApiImplTest {
 
             UserInfo userInfo = accountApi.getUserInfo("valid-access-token");
 
+            assertEquals("teacher@gsm.hs.kr", userInfo.getSub());
             assertEquals(AccountStatus.ACTIVE, userInfo.getStatus());
             assertEquals(AccountObjectType.TEACHER, userInfo.getObjectType());
             assertFalse(userInfo.isStudent());
@@ -222,6 +224,17 @@ class AccountApiImplTest {
             assertTrue(userInfo.getClubs().isEmpty());
             assertNotNull(userInfo.getProjects());
             assertTrue(userInfo.getProjects().isEmpty());
+        }
+
+        @Test
+        @DisplayName("sub 클레임을 내려주지 않는 이전 서버 응답에서는 sub가 null이다")
+        void missingSubBecomesNull() {
+            enqueue(NON_STUDENT_RESPONSE);
+
+            UserInfo userInfo = accountApi.getUserInfo("valid-access-token");
+
+            assertNull(userInfo.getSub());
+            assertEquals("test@gsm.hs.kr", userInfo.getEmail());
         }
 
         @Test

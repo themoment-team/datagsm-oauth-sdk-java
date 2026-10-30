@@ -295,14 +295,13 @@ class OAuthApiImplTest {
                         "\"token_endpoint\":\"https://oauth.authorization.datagsm.kr/v1/oauth/token\"," +
                         "\"jwks_uri\":\"https://oauth.authorization.datagsm.kr/v1/oauth/jwks\"," +
                         "\"userinfo_endpoint\":\"https://oauth.resource.datagsm.kr/userinfo\"," +
-                        "\"end_session_endpoint\":\"https://oauth.authorization.datagsm.kr/v1/oauth/logout\"," +
                         "\"response_types_supported\":[\"code\"]," +
                         "\"grant_types_supported\":[\"authorization_code\",\"refresh_token\",\"client_credentials\"]," +
                         "\"subject_types_supported\":[\"public\"]," +
                         "\"id_token_signing_alg_values_supported\":[\"RS256\"]," +
-                        "\"code_challenge_methods_supported\":[\"plain\",\"S256\"]," +
+                        "\"code_challenge_methods_supported\":[\"S256\"]," +
                         "\"scopes_supported\":[\"openid\",\"app:account_read\"]," +
-                        "\"token_endpoint_auth_methods_supported\":[\"client_secret_post\",\"none\"]," +
+                        "\"token_endpoint_auth_methods_supported\":[\"client_secret_basic\",\"client_secret_post\",\"none\"]," +
                         "\"claims_supported\":[\"iss\",\"sub\",\"aud\",\"exp\",\"iat\",\"nonce\",\"email\"]}";
 
         @Test
@@ -320,6 +319,7 @@ class OAuthApiImplTest {
 
         @Test
         @DisplayName("Discovery 문서를 조회한다")
+        @SuppressWarnings("deprecation")
         void getDiscoveryDocument() throws InterruptedException {
             enqueueToken(DISCOVERY_JSON);
 
@@ -327,14 +327,31 @@ class OAuthApiImplTest {
 
             assertEquals("https://oauth.authorization.datagsm.kr", doc.getIssuer());
             assertEquals("https://oauth.resource.datagsm.kr/userinfo", doc.getUserinfoEndpoint());
-            assertEquals("https://oauth.authorization.datagsm.kr/v1/oauth/logout", doc.getEndSessionEndpoint());
+            assertNull(doc.getEndSessionEndpoint());
             assertTrue(doc.getTokenEndpointAuthMethodsSupported().contains("none"));
-            assertEquals(Arrays.asList("plain", "S256"), doc.getCodeChallengeMethodsSupported());
+            assertEquals(Arrays.asList("S256"), doc.getCodeChallengeMethodsSupported());
 
             RecordedRequest request = mockWebServer.takeRequest(3, TimeUnit.SECONDS);
             assertNotNull(request);
             assertEquals("GET", request.getMethod());
             assertEquals("/.well-known/openid-configuration", request.getPath());
+        }
+
+        @Test
+        @DisplayName("end_session_endpoint를 내려주는 이전 서버의 Discovery 문서도 그대로 읽는다")
+        @SuppressWarnings("deprecation")
+        void getLegacyDiscoveryDocument() {
+            enqueueToken("{\"issuer\":\"https://oauth.authorization.datagsm.kr\"," +
+                    "\"end_session_endpoint\":\"https://oauth.authorization.datagsm.kr/v1/oauth/logout\"," +
+                    "\"code_challenge_methods_supported\":[\"plain\",\"S256\"]," +
+                    "\"token_endpoint_auth_methods_supported\":[\"client_secret_post\",\"none\"]}");
+
+            OidcDiscoveryDocument doc = oAuthApi.getDiscoveryDocument();
+
+            assertEquals("https://oauth.authorization.datagsm.kr/v1/oauth/logout", doc.getEndSessionEndpoint());
+            assertEquals(Arrays.asList("plain", "S256"), doc.getCodeChallengeMethodsSupported());
+            assertEquals(Arrays.asList("client_secret_post", "none"), doc.getTokenEndpointAuthMethodsSupported());
+            assertTrue(doc.toString().contains("endSessionEndpoint='https://oauth.authorization.datagsm.kr/v1/oauth/logout'"));
         }
 
         @Test

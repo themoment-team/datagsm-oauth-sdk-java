@@ -103,6 +103,10 @@ public class AuthorizationUrlBuilder {
      * 서버는 code_challenge_method를 대소문자까지 정확히 비교하므로
      * 입력값의 대소문자와 앞뒤 공백에 관계없이 {@code S256} 또는 {@code plain}으로 정규화해 전송합니다.
      *
+     * <p>
+     * {@code plain}은 하위 호환을 위해 서버가 계속 받지만 Discovery의 {@code code_challenge_methods_supported}에서는 빠졌습니다.
+     * 새로 연동한다면 {@code S256}이나 {@link #enablePkce()}를 사용하세요.
+     *
      * @param codeVerifier 43~128자의 랜덤 문자열
      * @param method "S256" 또는 "plain" (대소문자 무관)
      */
