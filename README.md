@@ -11,7 +11,7 @@ Maven Central에 배포됩니다. 별도 저장소나 인증 토큰 없이 `mave
 <dependency>
     <groupId>io.github.themoment-team</groupId>
     <artifactId>datagsm-oauth-sdk-java</artifactId>
-    <version>2.0.1</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 
@@ -23,7 +23,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.github.themoment-team:datagsm-oauth-sdk-java:2.0.1'
+    implementation 'io.github.themoment-team:datagsm-oauth-sdk-java:2.1.0'
 }
 ```
 
@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.themoment-team:datagsm-oauth-sdk-java:2.0.1")
+    implementation("io.github.themoment-team:datagsm-oauth-sdk-java:2.1.0")
 }
 ```
 
