@@ -25,7 +25,7 @@ class AccountApiImplTest {
                     "\"status\":\"ACTIVE\",\"objectType\":null,\"teacher\":null}";
 
     private static final String STUDENT_RESPONSE =
-            "{\"id\":2,\"email\":\"student@gsm.hs.kr\",\"role\":\"USER\",\"isStudent\":true," +
+            "{\"sub\":\"student@gsm.hs.kr\",\"id\":2,\"email\":\"student@gsm.hs.kr\",\"role\":\"USER\",\"isStudent\":true," +
                     "\"student\":{\"id\":10,\"name\":\"홍길동\",\"sex\":\"MAN\",\"email\":\"student@gsm.hs.kr\"," +
                     "\"grade\":2,\"classNum\":3,\"number\":15,\"studentNumber\":2315," +
                     "\"major\":\"SW_DEVELOPMENT\",\"role\":\"GENERAL_STUDENT\"," +
@@ -122,6 +122,7 @@ class AccountApiImplTest {
 
             UserInfo userInfo = accountApi.getUserInfo("valid-access-token");
 
+            assertEquals("student@gsm.hs.kr", userInfo.getSub());
             assertTrue(userInfo.isStudent());
             assertNotNull(userInfo.getStudent());
             assertEquals("홍길동", userInfo.getStudent().getName());

@@ -338,6 +338,23 @@ class OAuthApiImplTest {
         }
 
         @Test
+        @DisplayName("end_session_endpoint를 내려주는 이전 서버의 Discovery 문서도 그대로 읽는다")
+        @SuppressWarnings("deprecation")
+        void getLegacyDiscoveryDocument() {
+            enqueueToken("{\"issuer\":\"https://oauth.authorization.datagsm.kr\"," +
+                    "\"end_session_endpoint\":\"https://oauth.authorization.datagsm.kr/v1/oauth/logout\"," +
+                    "\"code_challenge_methods_supported\":[\"plain\",\"S256\"]," +
+                    "\"token_endpoint_auth_methods_supported\":[\"client_secret_post\",\"none\"]}");
+
+            OidcDiscoveryDocument doc = oAuthApi.getDiscoveryDocument();
+
+            assertEquals("https://oauth.authorization.datagsm.kr/v1/oauth/logout", doc.getEndSessionEndpoint());
+            assertEquals(Arrays.asList("plain", "S256"), doc.getCodeChallengeMethodsSupported());
+            assertEquals(Arrays.asList("client_secret_post", "none"), doc.getTokenEndpointAuthMethodsSupported());
+            assertTrue(doc.toString().contains("endSessionEndpoint='https://oauth.authorization.datagsm.kr/v1/oauth/logout'"));
+        }
+
+        @Test
         @DisplayName("JWK Set을 조회하고 kid로 키를 찾는다")
         void getJwkSet() throws InterruptedException {
             enqueueToken("{\"keys\":[{\"kty\":\"RSA\",\"kid\":\"key-1\",\"n\":\"modulus\",\"e\":\"AQAB\"}]}");
