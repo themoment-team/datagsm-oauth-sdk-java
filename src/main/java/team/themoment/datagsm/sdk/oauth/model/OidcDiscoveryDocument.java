@@ -77,7 +77,13 @@ public class OidcDiscoveryDocument {
 
     /**
      * IdP 세션 로그아웃 엔드포인트 ({@code POST}, 브라우저 쿠키 기반)
+     * <p>
+     * 서버의 로그아웃 엔드포인트가 OIDC RP-Initiated Logout 규격(GET 리다이렉트)이 아니어서
+     * 서버가 Discovery에서 {@code end_session_endpoint}를 내려주지 않게 되었고, 이 경우 null을 반환합니다.
+     *
+     * @deprecated {@link team.themoment.datagsm.sdk.oauth.DataGsmOAuthClient#getLogoutEndpoint()}를 사용하세요.
      */
+    @Deprecated
     public String getEndSessionEndpoint() {
         return endSessionEndpoint;
     }
