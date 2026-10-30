@@ -61,7 +61,7 @@ scope는 `{appId}:{scopeName}` 형식입니다. `{appId}`는 DataGSM 애플리�
 | scope | `UserInfo`에서 채워지는 필드 | scope가 없을 때 |
 |---|---|---|
 | `openid` | 토큰 응답의 `idToken` | `idToken` null |
-| `{appId}:account_read` | `id`, `email`, `role`, `status`, `objectType` | `/userinfo` 호출 불가 (403) |
+| `{appId}:account_read` | `sub`, `id`, `email`, `role`, `status`, `objectType` | `/userinfo` 호출 불가 (403) |
 | `{appId}:student_read` | `student`, `teacher` | 둘 다 null |
 | `{appId}:club_read` | `clubs`, `student.majorClub`, `student.autonomousClub` | 빈 목록, null |
 | `{appId}:project_read` | `projects` | 빈 목록 |
@@ -80,6 +80,15 @@ scope는 `{appId}:{scopeName}` 형식입니다. `{appId}`는 DataGSM 애플리�
 - `getDiscoveryDocument()`: `/.well-known/openid-configuration` 조회
 - `getJwkSet()`: `/v1/oauth/jwks` 조회. SDK는 id_token 서명을 검증하지 않으므로, 이 공개키로 JWT 라이브러리에서 RS256 서명과 `iss`, `aud`, `exp`, `nonce`를 직접 검증하세요.
 - `getLogoutEndpoint()`: IdP 세션 로그아웃 URL(`POST /v1/oauth/logout`). 브라우저 쿠키로만 동작하므로 브라우저에서 `fetch(url, { method: "POST", credentials: "include" })`로 호출합니다.
+  - 이 엔드포인트는 OIDC RP-Initiated Logout(GET 리다이렉트) 규격이 아니어서 Discovery의 `end_session_endpoint`로 내려오지 않습니다. 로그아웃 URL은 Discovery 대신 `getLogoutEndpoint()`로 얻으세요.
+- `UserInfo.getSub()`: OIDC `sub` 클레임. id_token의 `sub`와 같은 값(email)이라 둘을 비교해 같은 사용자인지 확인할 수 있습니다.
+- PKCE는 `S256`(`enablePkce()`)을 사용하세요. `plain`은 하위 호환을 위해 서버가 받지만 Discovery의 `code_challenge_methods_supported`에서는 빠졌습니다.
+
+### 2.0.1 → 2.1.0 마이그레이션
+필수 변경은 없습니다.
+
+- `UserInfo.getSub()`가 추가되었습니다. 이 클레임을 내려주지 않는 이전 서버에서는 null입니다.
+- `OidcDiscoveryDocument.getEndSessionEndpoint()`가 deprecated 되었습니다. 서버가 Discovery에서 `end_session_endpoint`를 내려주지 않게 되어 null을 반환하므로 `getLogoutEndpoint()`를 사용하세요.
 
 ### 2.0.0 → 2.0.1 마이그레이션
 배포 위치가 JitPack에서 Maven Central로 바뀌면서 groupId가 바뀌었습니다. 코드의 패키지(`import`)는 그대로입니다.
