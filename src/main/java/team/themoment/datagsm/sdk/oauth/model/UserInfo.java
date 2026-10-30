@@ -19,6 +19,7 @@ import java.util.List;
  * 서버가 SDK에 없는 enum 값을 새로 내려주면 해당 필드는 예외 없이 null로 역직렬화됩니다.
  */
 public class UserInfo {
+    private String sub;
     private Long id;
     private String email;
     private AccountRole role;
@@ -31,6 +32,19 @@ public class UserInfo {
     private List<ProjectSummary> projects;
 
     public UserInfo() {}
+
+    /**
+     * OIDC 사용자 식별자 ({@code sub} 클레임). id_token, 액세스 토큰의 {@code sub}와 같은 값(email)입니다.
+     * <p>
+     * 이 필드를 내려주지 않는 이전 서버에서는 null입니다.
+     */
+    public String getSub() {
+        return sub;
+    }
+
+    public void setSub(String sub) {
+        this.sub = sub;
+    }
 
     public Long getId() {
         return id;
@@ -146,7 +160,8 @@ public class UserInfo {
     @Override
     public String toString() {
         return "UserInfo{" +
-                "id=" + id +
+                "sub='" + sub + '\'' +
+                ", id=" + id +
                 ", email='" + email + '\'' +
                 ", role=" + role +
                 ", isStudent=" + isStudent +
