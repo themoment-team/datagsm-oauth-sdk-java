@@ -8,7 +8,8 @@ import java.util.List;
  * <p>
  * 액세스 토큰에 부여된 scope에 따라 채워지는 필드가 다릅니다. ({@code {appId}}는 DataGSM 애플리케이션 ID)
  * <ul>
- *     <li>{@code {appId}:account_read} — id, email, role, status, objectType, isStudent (userinfo 호출에 필요)</li>
+ *     <li>{@code {appId}:account_read} — sub, id, email, role, status, objectType, isStudent (userinfo 호출에 필요).
+ *     sub는 이 클레임을 내려주지 않는 이전 서버에서는 null</li>
  *     <li>{@code {appId}:student_read} — student, teacher. 없으면 둘 다 null</li>
  *     <li>{@code {appId}:club_read} — clubs, student.majorClub, student.autonomousClub. 없으면 빈 목록/null</li>
  *     <li>{@code {appId}:project_read} — projects. 없으면 빈 목록</li>
