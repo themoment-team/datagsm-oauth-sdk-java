@@ -106,6 +106,8 @@ public interface OAuthApi {
      * <p>
      * 서버는 브라우저의 IdP 세션 쿠키만으로 세션을 식별하므로 SP 서버에서 호출해도 효과가 없습니다.
      * 브라우저에서 {@code fetch(url, { method: "POST", credentials: "include" })}로 호출하세요.
+     * <p>
+     * 서버가 이 엔드포인트를 Discovery에 광고하지 않으므로 구현체는 고정 경로 {@code /v1/oauth/logout}으로 URL을 만듭니다.
      *
      * @return 로그아웃 엔드포인트 URL
      */
